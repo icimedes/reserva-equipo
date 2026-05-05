@@ -39,6 +39,13 @@
     return data;
   }
 
+  function normalizarHora(hora) {
+    if (!hora) return "00:00:00";
+    if (hora.length === 5) return hora + ":00";
+    if (hora.length === 8) return hora;
+    return "00:00:00";
+  }
+
   async function cargarReservas(equipoId){
     if (!equipoId) return [];
 
@@ -50,16 +57,21 @@
       .order("fecha_reserva", { ascending: true });
 
     if (error){
+      console.error("Error cargando reservas:", error);
       return [];
     }
 
+    console.log("Reservas obtenidas:", data);
+
     return data.map((row) => {
       const color = row.estado === "aprobada" ? "#0f7b3a" : row.estado === "pendiente" ? "#b88400" : "#667085";
+      const horaInicio = normalizarHora(row.hora_inicio);
+      const horaFin = normalizarHora(row.hora_fin);
       return {
         id: row.id,
         title: "Ocupado",
-        start: `${row.fecha_reserva}T${row.hora_inicio}`,
-        end: `${row.fecha_reserva}T${row.hora_fin}`,
+        start: `${row.fecha_reserva}T${horaInicio}`,
+        end: `${row.fecha_reserva}T${horaFin}`,
         backgroundColor: color,
         borderColor: color,
         display: "block"
