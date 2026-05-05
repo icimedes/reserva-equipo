@@ -3,364 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ICIMEDES | Gestión de Reservaciones (M365)</title>
+  <title>ICIMEDES | Solicitud de Reserva</title>
 
-  <!-- =========================
-       CSS (Estilos)
-  ========================== -->
-  <style>
-    :root{
-      /* Azul institucional (aprox.) */
-      --unah-blue-900:#002a5c;
-      --unah-blue-800:#003a70;
-      --unah-blue-700:#0a4e9b;
-      --unah-blue-600:#1565c0;
-
-      --ink:#0b1220;
-      --muted:#5b667a;
-      --bg:#f6f8fc;
-      --card:#ffffff;
-      --line:#e6ebf5;
-
-      --success:#0f7b3a;
-      --danger:#b42318;
-      --shadow: 0 10px 30px rgba(0, 0, 0, .08);
-      --radius: 14px;
-
-      --focus: 0 0 0 3px rgba(21, 101, 192, .25);
-      --max: 1200px;
-      --header-h: 84px;
-    }
-
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
-      color:var(--ink);
-      background:
-        radial-gradient(1200px 600px at 10% 0%, rgba(21,101,192,.10), transparent 55%),
-        radial-gradient(900px 500px at 90% 0%, rgba(0,58,112,.10), transparent 50%),
-        var(--bg);
-    }
-
-    a{ color:inherit; }
-    .wrap{ max-width:var(--max); margin:0 auto; padding:18px; }
-
-    /* Header */
-    header{
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(246,248,252,.75);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--line);
-    }
-    .header-inner{
-      max-width: var(--max);
-      margin:0 auto;
-      padding: 14px 18px;
-      display:flex;
-      gap:16px;
-      align-items:center;
-      min-height: var(--header-h);
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      min-width: 0;
-    }
-    .logo-box{
-      /* El logo original es rectangular; evitamos forzarlo a cuadrado */
-      aspect-ratio: 1332 / 800;
-      height: clamp(38px, 5vw, 52px);
-      width: auto;
-      max-width: 190px;
-      flex: 0 0 auto;
-      position: relative;
-    }
-    .logo{
-      width: 100%;
-      height: 100%;
-      border-radius: 12px;
-      object-fit: contain;
-      box-shadow: 0 8px 18px rgba(0,0,0,.10);
-      border: 0; /* quitar borde blanco que puede mezclarse con fondo */
-      background: transparent;
-    }
-    .logo-fallback{
-      position:absolute;
-      inset: 0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(0,58,112,.18), rgba(21,101,192,.12));
-      border: 1px solid rgba(0,58,112,.20);
-      color: var(--unah-blue-900);
-      font-weight: 900;
-      letter-spacing: .8px;
-    }
-    .brand h1{
-      margin:0;
-      font-size: 15px;
-      line-height: 1.2;
-      letter-spacing: .2px;
-    }
-    .brand .sub{
-      display:block;
-      margin-top:4px;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .header-actions{
-      margin-left:auto;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    /* Cards / layout */
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      align-items:start;
-    }
-    @media (max-width: 980px){
-      .brand{ min-width: auto; }
-      .header-actions{ width: 100%; justify-content: flex-start; }
-    }
-
-    .card{
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .card .hd{
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      background:
-        linear-gradient(135deg, rgba(0,58,112,.08), rgba(21,101,192,.05));
-    }
-    .card .hd .title{
-      margin:0;
-      font-size: 14px;
-      letter-spacing: .2px;
-    }
-    .card .bd{ padding: 14px 16px; }
-
-    /* Form */
-    label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin: 0 0 6px 0;
-      font-weight: 600;
-      letter-spacing: .2px;
-    }
-    .field{
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-    input[type="email"]{
-      width:100%;
-      padding: 11px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      outline: none;
-      background: #fff;
-      font-size: 14px;
-    }
-    input[type="email"]:focus{
-      box-shadow: var(--focus);
-      border-color: rgba(21,101,192,.5);
-    }
-    .hint{
-      margin: 10px 0 0 0;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-
-    .status{
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: #fbfcff;
-      font-size: 12px;
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      line-height: 1.35;
-    }
-    .dot{
-      width:10px; height:10px; border-radius:50%;
-      margin-top: 3px;
-      background: #9aa6bb;
-      flex: 0 0 auto;
-    }
-    .status.ok{ border-color: rgba(15,123,58,.25); background: rgba(15,123,58,.06); }
-    .status.ok .dot{ background: var(--success); }
-    .status.bad{ border-color: rgba(180,35,24,.25); background: rgba(180,35,24,.06); }
-    .status.bad .dot{ background: var(--danger); }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      padding: 11px 14px;
-      border-radius: 12px;
-      border: 1px solid transparent;
-      background: linear-gradient(135deg, var(--unah-blue-700), var(--unah-blue-600));
-      color: #fff;
-      font-weight: 700;
-      letter-spacing: .2px;
-      cursor: pointer;
-      user-select:none;
-      transition: transform .05s ease, filter .15s ease, opacity .15s ease;
-      text-decoration:none;
-      white-space: nowrap;
-    }
-    .btn:active{ transform: translateY(1px); }
-    .btn:focus{ outline:none; box-shadow: var(--focus); }
-    .btn[disabled]{
-      opacity: .55;
-      cursor: not-allowed;
-      filter: grayscale(.2);
-    }
-    .btn.secondary{
-      background: #fff;
-      color: var(--unah-blue-800);
-      border-color: rgba(0,58,112,.25);
-      font-weight: 700;
-    }
-
-    /* Tabs */
-    .tabs{
-      display:flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 12px 12px 0 12px;
-      background: #fff;
-      border-bottom: 1px solid var(--line);
-    }
-    .tab{
-      appearance:none;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--unah-blue-900);
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor:pointer;
-      transition: background .15s ease, border-color .15s ease;
-    }
-    .tab:hover{ border-color: rgba(21,101,192,.35); background: rgba(21,101,192,.04); }
-    .tab[aria-selected="true"]{
-      background: linear-gradient(135deg, rgba(0,58,112,.12), rgba(21,101,192,.08));
-      border-color: rgba(21,101,192,.45);
-    }
-    .tab:focus{ outline:none; box-shadow: var(--focus); }
-
-    .calendar-meta{
-      padding: 12px 16px;
-      display:flex;
-      gap: 10px;
-      align-items:flex-start;
-      border-bottom: 1px solid var(--line);
-      background: #fbfcff;
-    }
-    .calendar-meta strong{ font-size: 13px; }
-    .calendar-meta p{
-      margin: 2px 0 0 0;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.35;
-    }
-
-    /* Calendar frame */
-    .frame-wrap{
-      position: relative;
-      background: #fff;
-    }
-    .frame{
-      width:100%;
-      height: calc(100vh - var(--header-h) - 190px);
-      min-height: 560px;
-      border: 0;
-      display:block;
-    }
-    @media (max-width: 980px){
-      .frame{ height: 70vh; min-height: 520px; }
-    }
-
-    .loading{
-      position:absolute;
-      inset: 0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      background: rgba(255,255,255,.75);
-      backdrop-filter: blur(4px);
-      gap: 12px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .loading.show{ display:flex; }
-    .spinner{
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      border: 3px solid rgba(21,101,192,.20);
-      border-top-color: rgba(21,101,192,.75);
-      animation: spin .9s linear infinite;
-    }
-    @keyframes spin{ to{ transform: rotate(360deg);} }
-
-    /* Small helpers */
-    .kpi{
-      display:grid;
-      gap: 10px;
-      margin-top: 14px;
-    }
-    .pill{
-      border: 1px dashed rgba(0,58,112,.35);
-      background: rgba(0,58,112,.05);
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.35;
-    }
-    .pill b{ color: var(--unah-blue-900); }
-
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      align-items:center;
-      margin-top: 12px;
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 
 <body>
-  <!-- =========================
-       HTML (Estructura)
-  ========================== -->
-
   <header>
     <div class="header-inner">
       <div class="brand">
@@ -369,303 +20,139 @@
           <div id="logoFallback" class="logo-fallback">IC</div>
         </div>
         <div>
-          <h1>ICIMEDES · Sistema de Reservas <span class="sub">Instituto de Investigación en Ciencias Médicas y Derecho a la Salud</span></h1>
+          <h1>ICIMEDES · Solicitud de Reserva</h1>
+          <span class="sub">Instituto de Investigacion en Ciencias Medicas y Derecho a la Salud</span>
         </div>
       </div>
 
-      <!-- header-actions removed as requested -->
+      <div class="header-actions">
+        <a class="btn secondary" href="dashboard.html">Ver calendario</a>
+      </div>
     </div>
   </header>
 
   <main class="wrap">
-    <div class="grid">
-      <!-- Panel de acceso -->
-      <section class="card" aria-labelledby="accessTitle">
+    <div class="hero">
+      <div>
+        <span class="badge">Formulario publico</span>
+        <h2>Reserva de equipos institucionales</h2>
+        <p>Complete la solicitud con correo UNAH. Las reservas se validan por horario.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <section class="card">
         <div class="hd">
-          <h2 class="title" id="accessTitle">Acceso institucional</h2>
+          <h2 class="title">Datos de la solicitud</h2>
         </div>
         <div class="bd">
-          <label for="email">Correo UNAH (obligatorio para habilitar la reservación)</label>
-          <div class="field">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              inputmode="email"
-              autocomplete="email"
-              placeholder="usuario@unah.edu.hn o usuario@unah.hn"
-              aria-describedby="emailHint emailStatus"
-            />
-          </div>
+          <form id="reservaForm" novalidate>
+            <div class="form-grid">
+              <div>
+                <label for="nombreCompleto">Nombre completo</label>
+                <input id="nombreCompleto" class="input" type="text" placeholder="Nombre y apellido" />
+                <p class="error-text" data-error-for="nombreCompleto"></p>
+              </div>
 
-          <p class="hint" id="emailHint">
-            Solo se aceptan dominios <code>@unah.edu.hn</code> o <code>@unah.hn</code>.
-            Tras validar el correo, el botón abrirá un Microsoft Form para capturar la solicitud.
-          </p>
+              <div>
+                <label for="correo">Correo institucional</label>
+                <input id="correo" class="input" type="email" placeholder="usuario@unah.edu.hn" />
+                <p class="hint">Solo se aceptan dominios @unah.edu.hn o @unah.hn.</p>
+                <p class="error-text" data-error-for="correo"></p>
+              </div>
 
-          <div id="emailStatus" class="status" role="status" aria-live="polite">
-            <span class="dot" aria-hidden="true"></span>
-            <div>
-              <b>Estado:</b> Ingrese su correo institucional para habilitar la reservación.
+              <div>
+                <label for="tipoUsuario">Tipo de usuario</label>
+                <select id="tipoUsuario">
+                  <option value="">Seleccione una opcion</option>
+                  <option value="profesor">Profesor</option>
+                  <option value="estudiante">Estudiante</option>
+                </select>
+                <p class="error-text" data-error-for="tipoUsuario"></p>
+              </div>
+
+              <div id="sectionProfesor">
+                <label for="numEmpleado">Numero de empleado</label>
+                <input id="numEmpleado" class="input" type="text" placeholder="Ej: 12345" />
+                <p class="error-text" data-error-for="numEmpleado"></p>
+              </div>
+
+              <div id="sectionEstudiante">
+                <label for="numCuenta">Numero de cuenta</label>
+                <input id="numCuenta" class="input" type="text" placeholder="Ej: 20201234" />
+                <p class="error-text" data-error-for="numCuenta"></p>
+              </div>
+
+              <div>
+                <label for="numRegistroProyecto">Numero de registro del proyecto</label>
+                <input id="numRegistroProyecto" class="input" type="text" placeholder="Ej: 2025-001" />
+                <p class="error-text" data-error-for="numRegistroProyecto"></p>
+              </div>
+
+              <div>
+                <label for="nombreProyecto">Nombre del proyecto</label>
+                <input id="nombreProyecto" class="input" type="text" placeholder="Proyecto de investigacion" />
+                <p class="error-text" data-error-for="nombreProyecto"></p>
+              </div>
+
+              <div>
+                <label for="equipoId">Equipo</label>
+                <select id="equipoId"></select>
+                <p class="error-text" data-error-for="equipoId"></p>
+              </div>
+
+              <div>
+                <label for="fechaReserva">Fecha de reserva</label>
+                <input id="fechaReserva" class="input" type="date" />
+                <p class="error-text" data-error-for="fechaReserva"></p>
+              </div>
+
+              <div>
+                <label for="horaInicio">Hora de inicio</label>
+                <input id="horaInicio" class="input" type="time" />
+                <p class="error-text" data-error-for="horaInicio"></p>
+              </div>
+
+              <div>
+                <label for="horaFin">Hora de fin</label>
+                <input id="horaFin" class="input" type="time" />
+                <p class="error-text" data-error-for="horaFin"></p>
+              </div>
+
+              <div class="full">
+                <div id="formStatus" class="notice hidden" aria-live="polite"></div>
+              </div>
             </div>
-          </div>
 
-          <div class="row">
-            <button id="btnReserve" class="btn" type="button" disabled aria-disabled="true">
-              Realizar Reservación
-            </button>
-          </div>
-
-          <div class="kpi">
-            <div class="pill">
-              <b>Disponibilidad por equipo:</b> cada pestaña corresponde a un calendario independiente (Outlook).
-              Puede haber reservaciones simultáneas en equipos distintos, pero no dentro del mismo equipo.
+            <div class="row">
+              <button id="btnSubmit" class="btn" type="submit">Enviar solicitud</button>
+              <a class="btn secondary" href="dashboard.html">Ver calendario</a>
             </div>
-            <div class="pill">
-              <b>Preparado para control administrativo:</b> el Form puede conectarse a Excel en OneDrive para consolidar y dar seguimiento a solicitudes.
-            </div>
-          </div>
+          </form>
         </div>
       </section>
 
-      <!-- Calendarios -->
-      <section class="card" id="calendarios" aria-labelledby="calTitle">
+      <aside class="card">
         <div class="hd">
-          <h2 class="title" id="calTitle">Calendarios por equipo (Outlook)</h2>
+          <h2 class="title">Antes de enviar</h2>
         </div>
-
-        <div class="tabs" role="tablist" aria-label="Equipos médicos">
-          <!-- Tabs se inyectan por JS -->
-        </div>
-
-        <div class="calendar-meta">
-          <div style="width:10px;height:10px;border-radius:50%;background:rgba(21,101,192,.7);margin-top:4px;"></div>
-          <div>
-            <strong id="teamTitle">Equipo</strong>
-            <p id="teamDesc">
-              Seleccione un equipo para cargar su calendario. La disponibilidad se interpreta dentro del mismo calendario del equipo.
-            </p>
+        <div class="bd" style="display:grid; gap:10px;">
+          <div class="pill">
+            <b>Validacion automatica:</b> el sistema verifica traslapes por equipo.
+          </div>
+          <div class="pill">
+            <b>Estado inicial:</b> las solicitudes se registran como pendientes.
+          </div>
+          <div class="pill">
+            <b>Consulta publica:</b> el calendario muestra solo horarios ocupados.
           </div>
         </div>
-
-        <div class="frame-wrap">
-          <div id="loading" class="loading" aria-hidden="true">
-            <span class="spinner" aria-hidden="true"></span>
-            <span>Cargando calendario…</span>
-          </div>
-          <iframe
-            id="calendarFrame"
-            class="frame"
-            title="Calendario de Outlook del equipo seleccionado"
-            loading="lazy"
-            referrerpolicy="no-referrer"
-          ></iframe>
-        </div>
-      </section>
+      </aside>
     </div>
   </main>
 
-  <!-- =========================
-       JavaScript (Lógica)
-  ========================== -->
-  <script>
-    // === Configuración ===
-    // 1) Reemplace FORM_URL por el enlace real del Microsoft Form.
-    // 2) Reemplace calendarUrl por el enlace "publicado" de cada calendario de equipo.
-    const FORM_URL = "https://forms.office.com/Pages/ResponsePage.aspx?id=REEMPLAZAR_CON_SU_FORM"; // <-- TODO
-
-    // Base proporcionada (puede repetirse como demo si aún no hay enlaces por equipo).
-    const BASE_CALENDAR_URL =
-      "https://outlook.office365.com/owa/calendar/cc49c0a7ea464f19b464bd0fcb9e97b0@unah.hn/c933959229d141aa931e5f90182e1d739933569636227608552/calendar.html";
-
-    const TEAMS = [
-      {
-        id: "ultrasonido",
-        label: "Ultrasonido",
-        calendarUrl: BASE_CALENDAR_URL, // Reemplazar por el calendario del equipo
-        description:
-          "No se permiten traslapes dentro de Ultrasonido. Revise la vista del calendario antes de reservar."
-      },
-      {
-        id: "rayosx",
-        label: "Rayos X",
-        calendarUrl: BASE_CALENDAR_URL, // Reemplazar por el calendario del equipo
-        description:
-          "Calendario independiente. Reservas simultáneas con otros equipos sí son posibles."
-      },
-      {
-        id: "laboratorio",
-        label: "Laboratorio",
-        calendarUrl: BASE_CALENDAR_URL, // Reemplazar por el calendario del equipo
-        description:
-          "Valide espacios disponibles dentro del mismo equipo; no duplique horarios para este equipo."
-      },
-      {
-        id: "consulta",
-        label: "Consulta",
-        calendarUrl: BASE_CALENDAR_URL, // Reemplazar por el calendario del equipo
-        description:
-          "Este calendario controla disponibilidad de Consulta. Use el Form para registrar la solicitud."
-      }
-    ];
-
-    // Validación estricta de dominio UNAH:
-    // Acepta únicamente: usuario@unah.edu.hn o usuario@unah.hn
-    const EMAIL_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
-
-    // === Elementos ===
-    const $tabs = document.querySelector(".tabs");
-    const $frame = document.getElementById("calendarFrame");
-    const $loading = document.getElementById("loading");
-    const $logo = document.getElementById("logoImg");
-    const $logoFallback = document.getElementById("logoFallback");
-
-    const $teamTitle = document.getElementById("teamTitle");
-    const $teamDesc = document.getElementById("teamDesc");
-
-    const $email = document.getElementById("email");
-    const $status = document.getElementById("emailStatus");
-
-    const $btnReserve = document.getElementById("btnReserve");
-
-    // === Utilidades ===
-    function setLoading(isLoading){
-      $loading.classList.toggle("show", isLoading);
-      $loading.setAttribute("aria-hidden", String(!isLoading));
-    }
-
-    function setReserveEnabled(enabled){
-      $btnReserve.disabled = !enabled;
-      $btnReserve.setAttribute("aria-disabled", String(!enabled));
-    }
-
-    function setEmailStatus(kind, htmlText){
-      $status.classList.remove("ok", "bad");
-      if (kind === "ok") $status.classList.add("ok");
-      if (kind === "bad") $status.classList.add("bad");
-      $status.querySelector("div").innerHTML = htmlText;
-    }
-
-    function selectTeam(teamId, {pushHash = true} = {}){
-      const team = TEAMS.find(t => t.id === teamId) || TEAMS[0];
-
-      // Tabs ARIA state
-      for (const tab of $tabs.querySelectorAll('[role="tab"]')){
-        const isSelected = tab.getAttribute("data-team-id") === team.id;
-        tab.setAttribute("aria-selected", String(isSelected));
-        tab.tabIndex = isSelected ? 0 : -1;
-      }
-
-      // Meta
-      $teamTitle.textContent = `Equipo: ${team.label}`;
-      $teamDesc.textContent = team.description;
-
-      // Cargar iframe
-      setLoading(true);
-
-      // Evita recargar si ya es el mismo src
-      const nextSrc = team.calendarUrl;
-      if ($frame.src !== nextSrc){
-        $frame.src = nextSrc;
-      } else {
-        setTimeout(() => setLoading(false), 200);
-      }
-
-      if (pushHash) {
-        history.replaceState(null, "", `#equipo=${encodeURIComponent(team.id)}`);
-      }
-    }
-
-    function openForm(){
-      window.open(FORM_URL, "_blank", "noopener,noreferrer");
-    }
-
-    // === Render Tabs ===
-    function renderTabs(){
-      $tabs.innerHTML = "";
-      for (const team of TEAMS){
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "tab";
-        btn.setAttribute("role", "tab");
-        btn.setAttribute("aria-selected", "false");
-        btn.setAttribute("data-team-id", team.id);
-        btn.tabIndex = -1;
-        btn.textContent = team.label;
-
-        btn.addEventListener("click", () => selectTeam(team.id));
-        btn.addEventListener("keydown", (e) => {
-          // Navegación accesible con flechas
-          const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
-          if (!keys.includes(e.key)) return;
-
-          e.preventDefault();
-          const tabs = Array.from($tabs.querySelectorAll('[role="tab"]'));
-          const i = tabs.indexOf(btn);
-          let next = i;
-
-          if (e.key === "ArrowLeft") next = (i - 1 + tabs.length) % tabs.length;
-          if (e.key === "ArrowRight") next = (i + 1) % tabs.length;
-          if (e.key === "Home") next = 0;
-          if (e.key === "End") next = tabs.length - 1;
-
-          const nextTab = tabs[next];
-          nextTab.focus();
-          selectTeam(nextTab.getAttribute("data-team-id"));
-        });
-
-        $tabs.appendChild(btn);
-      }
-    }
-
-    // === Eventos ===
-    $frame.addEventListener("load", () => setLoading(false));
-
-    // Si se abre el HTML desde un "document portal" o fuera de la carpeta,
-    // la ruta relativa del logo puede no existir. Mostramos un fallback visible.
-    $logo.addEventListener("error", () => {
-      $logo.style.display = "none";
-      $logoFallback.style.display = "flex";
-    });
-
-
-    $email.addEventListener("input", () => {
-      const value = ($email.value || "").trim();
-      const valid = EMAIL_REGEX.test(value);
-
-      setReserveEnabled(valid);
-
-      if (!value){
-        setEmailStatus("neutral", "<b>Estado:</b> Ingrese su correo institucional para habilitar la reservación.");
-        return;
-      }
-
-      if (valid){
-        setEmailStatus(
-          "ok",
-          "<b>Estado:</b> Correo válido. Puede abrir el Form para registrar la reservación."
-        );
-      } else {
-        setEmailStatus(
-          "bad",
-          "<b>Estado:</b> Correo no válido. Use únicamente <code>@unah.edu.hn</code> o <code>@unah.hn</code>."
-        );
-      }
-    });
-
-    $btnReserve.addEventListener("click", openForm);
-
-    // === Inicialización ===
-    renderTabs();
-    setReserveEnabled(false);
-
-
-    // Selección inicial por hash (#equipo=...)
-    const hash = window.location.hash || "";
-    const m = hash.match(/#equipo=([^&]+)/);
-    const initialTeam = m ? decodeURIComponent(m[1]) : TEAMS[0].id;
-
-    selectTeam(initialTeam, {pushHash: true});
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
+  <script src="assets/js/reservas.js"></script>
 </body>
 </html>
