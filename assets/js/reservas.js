@@ -2,8 +2,6 @@
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
   const EMAIL_DOMAIN_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
   const EMPLEADO_REGEX = /^\d{4,6}$/;
-  const CUENTA_REGEX = /^\d{8,10}$/;
-  const REGISTRO_PROYECTO_REGEX = /^\d{4}-\d{3}$/;
 
   const form = document.getElementById("reservaForm");
   const statusBox = document.getElementById("formStatus");
@@ -129,8 +127,8 @@
       if (!data.numCuenta){
         setError("numCuenta", "El numero de cuenta es obligatorio");
         ok = false;
-      } else if (!CUENTA_REGEX.test(data.numCuenta)){
-        setError("numCuenta", "El numero de cuenta debe tener 8 a 10 digitos");
+      } else if (data.numCuenta.length > 10){
+        setError("numCuenta", "El numero de cuenta no debe superar 10 caracteres");
         ok = false;
       }
     }
@@ -138,8 +136,8 @@
     if (!data.numRegistroProyecto){
       setError("numRegistroProyecto", "El numero de registro del proyecto es obligatorio");
       ok = false;
-    } else if (!REGISTRO_PROYECTO_REGEX.test(data.numRegistroProyecto)){
-      setError("numRegistroProyecto", "Formato invalido. Use AAAA-###");
+    } else if (data.numRegistroProyecto.length > 10){
+      setError("numRegistroProyecto", "El numero de registro no debe superar 10 caracteres");
       ok = false;
     }
 
