@@ -105,6 +105,11 @@
     });
 
     formatMeta(null);
+    
+    if (equipos.length > 0) {
+      equipoSelect.value = equipos[0].id;
+      equipoSelect.dispatchEvent(new Event("change"));
+    }
   }
 
   document.addEventListener("DOMContentLoaded", init);
