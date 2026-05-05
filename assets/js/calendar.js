@@ -8,9 +8,13 @@
     loadingEl.classList.toggle("show", show);
   }
 
-  function formatMeta(equipo){
+  function formatMeta(equipo, hasEvents){
     if (!equipo){
       equipoMeta.textContent = "Seleccione un equipo para ver la disponibilidad.";
+      return;
+    }
+    if (hasEvents === false){
+      equipoMeta.textContent = "Sin reservas registradas para este equipo.";
       return;
     }
     equipoMeta.textContent = equipo.descripcion || "Calendario publico del equipo seleccionado.";
@@ -61,8 +65,6 @@
       return [];
     }
 
-    console.log("Reservas obtenidas:", data);
-
     return data.map((row) => {
       const color = row.estado === "aprobada" ? "#0f7b3a" : row.estado === "pendiente" ? "#b88400" : "#667085";
       const horaInicio = normalizarHora(row.hora_inicio);
@@ -80,6 +82,21 @@
   }
 
   let calendar;
+  async function buscarEquipoConReservas(equipos){
+    const { data, error } = await window.supabaseClient
+      .from("reservas")
+      .select("equipo_id, fecha_reserva, hora_inicio")
+      .neq("estado", "cancelada")
+      .order("fecha_reserva", { ascending: true })
+      .order("hora_inicio", { ascending: true })
+      .limit(1);
+
+    if (error || !data || data.length === 0) return null;
+
+    const equipoId = data[0].equipo_id;
+    return equipos.find((item) => item.id === equipoId) || null;
+  }
+
   async function init(){
     if (!window.supabaseClient){
       equipoMeta.textContent = "Falta configurar Supabase (URL o anon key).";
@@ -108,18 +125,21 @@
     equipoSelect.addEventListener("change", async () => {
       const equipoId = equipoSelect.value;
       const equipo = equipos.find((item) => item.id === equipoId);
-      formatMeta(equipo);
+      formatMeta(equipo, true);
       setLoading(true);
       const events = await cargarReservas(equipoId);
       calendar.removeAllEvents();
       calendar.addEventSource(events);
+      formatMeta(equipo, events.length > 0);
       setLoading(false);
     });
 
     formatMeta(null);
-    
+
     if (equipos.length > 0) {
-      equipoSelect.value = equipos[0].id;
+      const equipoConReserva = await buscarEquipoConReservas(equipos);
+      const equipoInicial = equipoConReserva || equipos[0];
+      equipoSelect.value = equipoInicial.id;
       equipoSelect.dispatchEvent(new Event("change"));
     }
   }
