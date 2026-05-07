@@ -1,5 +1,8 @@
 (function(){
 const EMAIL_DOMAIN_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
+const NOMBRE_COMPLETO_REGEX = /^[A-Za-zÀ-ÿÖÛÜöü\s]+$/;
+const NOMBRE_PROYECTO_REGEX = /^[A-Za-zÀ-ÿÖÛÜöü0-9\s]+$/;
+const REGISTRO_PROYECTO_REGEX = /^PI-\d+-DICIHT$/;
 
   const form = document.getElementById("reservaForm");
   const statusBox = document.getElementById("formStatus");
@@ -87,6 +90,12 @@ const EMAIL_DOMAIN_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
 if (!data.nombreCompleto){
       setError("nombreCompleto", "El nombre completo es obligatorio");
       ok = false;
+    } else if (data.nombreCompleto.length > 50){
+      setError("nombreCompleto", "El nombre completo no debe superar 50 caracteres");
+      ok = false;
+    } else if (!NOMBRE_COMPLETO_REGEX.test(data.nombreCompleto)){
+      setError("nombreCompleto", "Solo se permiten letras, espacios, acentos y dieresis");
+      ok = false;
     }
 
     if (!data.correo){
@@ -119,10 +128,19 @@ if (!data.nombreCompleto){
     if (!data.numRegistroProyecto){
       setError("numRegistroProyecto", "El numero de registro del proyecto es obligatorio");
       ok = false;
+    } else if (!REGISTRO_PROYECTO_REGEX.test(data.numRegistroProyecto)){
+      setError("numRegistroProyecto", "Formato inválido. Use PI-<numero>-DICIHT (ej: PI-2432-DICIHT)");
+      ok = false;
     }
 
     if (!data.nombreProyecto){
       setError("nombreProyecto", "El nombre del proyecto es obligatorio");
+      ok = false;
+    } else if (data.nombreProyecto.length > 1000){
+      setError("nombreProyecto", "El nombre del proyecto no debe superar 1000 caracteres");
+      ok = false;
+    } else if (!NOMBRE_PROYECTO_REGEX.test(data.nombreProyecto)){
+      setError("nombreProyecto", "Solo se permiten letras, numeros, espacios, acentos y dieresis");
       ok = false;
     }
 
