@@ -2,7 +2,7 @@
 const EMAIL_DOMAIN_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
 const NOMBRE_COMPLETO_REGEX = /^[A-Za-zÀ-ÿÖÛÜöü\s]+$/;
 const NOMBRE_PROYECTO_REGEX = /^[A-Za-zÀ-ÿÖÛÜöü0-9\s]+$/;
-const REGISTRO_PROYECTO_REGEX = /^PI-\d+-DICIHT$/;
+const REGISTRO_PROYECTO_REGEX = /^\d+$/;
 
   const form = document.getElementById("reservaForm");
   const statusBox = document.getElementById("formStatus");
@@ -129,7 +129,7 @@ if (!data.nombreCompleto){
       setError("numRegistroProyecto", "El numero de registro del proyecto es obligatorio");
       ok = false;
     } else if (!REGISTRO_PROYECTO_REGEX.test(data.numRegistroProyecto)){
-      setError("numRegistroProyecto", "Formato inválido. Use PI-<numero>-DICIHT (ej: PI-2432-DICIHT)");
+      setError("numRegistroProyecto", "Ingrese solo números (ej: 2432)");
       ok = false;
     }
 
@@ -230,7 +230,7 @@ if (conflict.data){
       tipo_usuario: payload.tipoUsuario,
       num_empleado: payload.tipoUsuario === "profesor" ? payload.numEmpleado : null,
       num_cuenta: payload.tipoUsuario === "estudiante" ? payload.numCuenta : null,
-      num_registro_proyecto: payload.numRegistroProyecto,
+      num_registro_proyecto: `PI-${payload.numRegistroProyecto}-DICIHT`,
       nombre_proyecto: payload.nombreProyecto,
       fecha_reserva: payload.fechaReserva,
       hora_inicio: payload.horaInicio,
