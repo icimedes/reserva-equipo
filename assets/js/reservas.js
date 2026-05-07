@@ -209,7 +209,6 @@ if (!data.nombreCompleto){
 
   async function enviarReserva(payload){
     const conflict = await window.supabaseClient.rpc("existe_conflicto", {
-      p_equipo_id: payload.equipoId,
       p_fecha: payload.fechaReserva,
       p_inicio: payload.horaInicio,
       p_fin: payload.horaFin
@@ -219,8 +218,8 @@ if (!data.nombreCompleto){
       throw new Error("No se pudo validar el horario.");
     }
 
-    if (conflict.data){
-      setStatus("Horario ocupado. Elija otra franja.", "error");
+if (conflict.data){
+      setStatus("Horario ocupado en otro equipo. Elija otra hora.", "error");
       return false;
     }
 

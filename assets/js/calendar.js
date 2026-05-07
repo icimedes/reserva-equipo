@@ -1,46 +1,10 @@
 (function(){
   const calendarEl = document.getElementById("calendar");
   const loadingEl = document.getElementById("calendarLoading");
-  const equipoSelect = document.getElementById("equipoFiltro");
   const equipoMeta = document.getElementById("equipoMeta");
 
   function setLoading(show){
     loadingEl.classList.toggle("show", show);
-  }
-
-  function formatMeta(equipo, hasEvents){
-    if (!equipo){
-      equipoMeta.textContent = "Seleccione un equipo para ver la disponibilidad.";
-      return;
-    }
-    if (hasEvents === false){
-      equipoMeta.textContent = "Sin reservas registradas para este equipo.";
-      return;
-    }
-    equipoMeta.textContent = equipo.descripcion || "Calendario publico del equipo seleccionado.";
-  }
-
-  async function cargarEquipos(){
-    const { data, error } = await window.supabaseClient
-      .from("equipos")
-      .select("id, nombre, tipo, descripcion, activo")
-      .eq("activo", true)
-      .order("nombre", { ascending: true });
-
-    if (error){
-      equipoMeta.textContent = "No se pudieron cargar los equipos.";
-      return [];
-    }
-
-    equipoSelect.innerHTML = "<option value=\"\">Seleccione un equipo</option>";
-    data.forEach((equipo) => {
-      const option = document.createElement("option");
-      option.value = equipo.id;
-      option.textContent = `${equipo.nombre} (${equipo.tipo})`;
-      equipoSelect.appendChild(option);
-    });
-
-    return data;
   }
 
   function normalizarHora(hora) {
@@ -50,13 +14,10 @@
     return "00:00:00";
   }
 
-  async function cargarReservas(equipoId){
-    if (!equipoId) return [];
-
+  async function cargarReservas(){
     const { data, error } = await window.supabaseClient
       .from("reservas")
-      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, estado")
-      .eq("equipo_id", equipoId)
+      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, estado, equipos(nombre, tipo)")
       .neq("estado", "cancelada")
       .order("fecha_reserva", { ascending: true });
 
@@ -66,12 +27,13 @@
     }
 
     return data.map((row) => {
-      const color = row.estado === "aprobada" ? "#0f7b3a" : row.estado === "pendiente" ? "#b88400" : "#667085";
+      const color = row.estado === "aprobada" ? "#0f7b3a" : "#b88400";
       const horaInicio = normalizarHora(row.hora_inicio);
       const horaFin = normalizarHora(row.hora_fin);
+      const equipoNombre = row.equipos?.nombre || "Equipo";
       return {
         id: row.id,
-        title: "Ocupado",
+        title: `${equipoNombre} - Ocupado`,
         start: `${row.fecha_reserva}T${horaInicio}`,
         end: `${row.fecha_reserva}T${horaFin}`,
         backgroundColor: color,
@@ -82,28 +44,11 @@
   }
 
   let calendar;
-  async function buscarEquipoConReservas(equipos){
-    const { data, error } = await window.supabaseClient
-      .from("reservas")
-      .select("equipo_id, fecha_reserva, hora_inicio")
-      .neq("estado", "cancelada")
-      .order("fecha_reserva", { ascending: true })
-      .order("hora_inicio", { ascending: true })
-      .limit(1);
-
-    if (error || !data || data.length === 0) return null;
-
-    const equipoId = data[0].equipo_id;
-    return equipos.find((item) => item.id === equipoId) || null;
-  }
-
   async function init(){
     if (!window.supabaseClient){
       equipoMeta.textContent = "Falta configurar Supabase (URL o anon key).";
       return;
     }
-
-    const equipos = await cargarEquipos();
 
     calendar = new FullCalendar.Calendar(calendarEl, {
       locale: "es",
@@ -122,25 +67,15 @@
 
     calendar.render();
 
-    equipoSelect.addEventListener("change", async () => {
-      const equipoId = equipoSelect.value;
-      const equipo = equipos.find((item) => item.id === equipoId);
-      formatMeta(equipo, true);
-      setLoading(true);
-      const events = await cargarReservas(equipoId);
-      calendar.removeAllEvents();
-      calendar.addEventSource(events);
-      formatMeta(equipo, events.length > 0);
-      setLoading(false);
-    });
+    setLoading(true);
+    const events = await cargarReservas();
+    calendar.addEventSource(events);
+    setLoading(false);
 
-    formatMeta(null);
-
-    if (equipos.length > 0) {
-      const equipoConReserva = await buscarEquipoConReservas(equipos);
-      const equipoInicial = equipoConReserva || equipos[0];
-      equipoSelect.value = equipoInicial.id;
-      equipoSelect.dispatchEvent(new Event("change"));
+    if (events.length === 0) {
+      equipoMeta.textContent = "No hay reservas registradas.";
+    } else {
+      equipoMeta.textContent = "Todas las reservas de equipos.";
     }
   }
 
