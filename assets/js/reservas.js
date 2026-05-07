@@ -1,7 +1,5 @@
 (function(){
-  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
-  const EMAIL_DOMAIN_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
-  const EMPLEADO_REGEX = /^\d{4,6}$/;
+const EMAIL_DOMAIN_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
 
   const form = document.getElementById("reservaForm");
   const statusBox = document.getElementById("formStatus");
@@ -86,22 +84,13 @@
 
     let ok = true;
 
-    if (!data.nombreCompleto){
+if (!data.nombreCompleto){
       setError("nombreCompleto", "El nombre completo es obligatorio");
-      ok = false;
-    } else if (data.nombreCompleto.length < 5){
-      setError("nombreCompleto", "El nombre completo debe tener al menos 5 caracteres");
-      ok = false;
-    } else if (data.nombreCompleto.length > 100){
-      setError("nombreCompleto", "El nombre completo no debe superar 100 caracteres");
       ok = false;
     }
 
     if (!data.correo){
       setError("correo", "El correo es obligatorio");
-      ok = false;
-    } else if (!EMAIL_REGEX.test(data.correo)){
-      setError("correo", "Formato de correo invalido");
       ok = false;
     } else if (!EMAIL_DOMAIN_REGEX.test(data.correo)){
       setError("correo", "Solo se permiten correos @unah.edu.hn o @unah.hn");
@@ -117,9 +106,6 @@
       if (!data.numEmpleado){
         setError("numEmpleado", "El numero de empleado es obligatorio");
         ok = false;
-      } else if (!EMPLEADO_REGEX.test(data.numEmpleado)){
-        setError("numEmpleado", "El numero de empleado debe tener 4 a 6 digitos");
-        ok = false;
       }
     }
 
@@ -127,28 +113,16 @@
       if (!data.numCuenta){
         setError("numCuenta", "El numero de cuenta es obligatorio");
         ok = false;
-      } else if (data.numCuenta.length > 10){
-        setError("numCuenta", "El numero de cuenta no debe superar 10 caracteres");
-        ok = false;
       }
     }
 
     if (!data.numRegistroProyecto){
       setError("numRegistroProyecto", "El numero de registro del proyecto es obligatorio");
       ok = false;
-    } else if (data.numRegistroProyecto.length > 10){
-      setError("numRegistroProyecto", "El numero de registro no debe superar 10 caracteres");
-      ok = false;
     }
 
     if (!data.nombreProyecto){
       setError("nombreProyecto", "El nombre del proyecto es obligatorio");
-      ok = false;
-    } else if (data.nombreProyecto.length < 5){
-      setError("nombreProyecto", "El nombre del proyecto debe tener al menos 5 caracteres");
-      ok = false;
-    } else if (data.nombreProyecto.length > 200){
-      setError("nombreProyecto", "El nombre del proyecto no debe superar 200 caracteres");
       ok = false;
     }
 
