@@ -16,6 +16,8 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
   let cacheLocked = false;
   let debounceTimer = null;
   let isLoadingEquipos = false;
+  let equiposRetryCount = 0;
+  const MAX_EQUIPOS_RETRIES = 3;
 
   const fields = {
     nombreCompleto: document.getElementById("nombreCompleto"),
@@ -239,6 +241,8 @@ if (!data.nombreCompleto){
     const showEstudiante = tipo === "estudiante";
     sectionProfesor.classList.toggle("hidden", !showProfesor);
     sectionEstudiante.classList.toggle("hidden", !showEstudiante);
+    sectionProfesor.hidden = !showProfesor;
+    sectionEstudiante.hidden = !showEstudiante;
 
     if (!showProfesor) fields.numEmpleado.value = "";
     if (!showEstudiante) fields.numCuenta.value = "";
@@ -295,7 +299,15 @@ function onClearForm(){
 
   async function cargarEquipos(){
     isLoadingEquipos = true;
+    fields.equipoId.innerHTML = "<option value=\"\">Cargando equipos...</option>";
     if (!window.supabaseClient){
+      if (equiposRetryCount < MAX_EQUIPOS_RETRIES){
+        equiposRetryCount += 1;
+        window.setTimeout(() => {
+          cargarEquipos();
+        }, 400);
+        return;
+      }
       setStatus("Falta configurar Supabase (URL o anon key).", "error");
       isLoadingEquipos = false;
       return;
@@ -309,6 +321,13 @@ function onClearForm(){
 
     if (error){
       setStatus("No se pudieron cargar los equipos.", "error");
+      fields.equipoId.innerHTML = "<option value=\"\">No se pudieron cargar los equipos</option>";
+      isLoadingEquipos = false;
+      return;
+    }
+
+    if (!data || data.length === 0){
+      fields.equipoId.innerHTML = "<option value=\"\">No hay equipos activos</option>";
       isLoadingEquipos = false;
       return;
     }
@@ -382,9 +401,7 @@ if (conflict.data){
       if (!done) return;
 
       const cacheSnapshot = { ...data };
-      suppressCache = true;
       cacheLocked = true;
-      suppressCache = false;
       window.setTimeout(() => {
         writeCache(cacheSnapshot);
         cacheLocked = false;
