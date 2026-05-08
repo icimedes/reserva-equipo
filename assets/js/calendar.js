@@ -126,6 +126,24 @@
           { label: "Hora", value: data.horaInicio && data.horaFin ? `${data.horaInicio} - ${data.horaFin}` : "" }
         ]);
       },
+      eventDidMount: (info) => {
+        info.el.style.cursor = "pointer";
+        info.el.addEventListener("click", () => {
+          const data = info.event.extendedProps || {};
+          openModal([
+            { label: "Equipo", value: data.equipo },
+            { label: "Nombre", value: data.nombreCompleto },
+            { label: "Correo", value: data.correo },
+            { label: "Tipo", value: data.tipoUsuario },
+            { label: "Numero de empleado", value: data.numEmpleado },
+            { label: "Numero de cuenta", value: data.numCuenta },
+            { label: "Proyecto", value: data.nombreProyecto },
+            { label: "Registro", value: data.numRegistroProyecto },
+            { label: "Fecha", value: data.fecha },
+            { label: "Hora", value: data.horaInicio && data.horaFin ? `${data.horaInicio} - ${data.horaFin}` : "" }
+          ]);
+        });
+      },
       events: []
     });
 
