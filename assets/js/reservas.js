@@ -1,7 +1,7 @@
 (function(){
 const EMAIL_DOMAIN_REGEX = /^[A-Z0-9._%+-]+@(unah\.edu\.hn|unah\.hn)$/i;
 const NOMBRE_COMPLETO_REGEX = /^[A-Za-zÀ-ÿÖÛÜöü\s]+$/;
-const NOMBRE_PROYECTO_REGEX = /^[A-Za-zÀ-ÿÖÛÜöü0-9\s]+$/;
+const NOMBRE_PROYECTO_REGEX = /^[A-Za-zÀ-ÿÖÛÜöü0-9\s\-:]+$/;
 const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
 
   const form = document.getElementById("reservaForm");

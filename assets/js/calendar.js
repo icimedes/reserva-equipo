@@ -2,6 +2,9 @@
   const calendarEl = document.getElementById("calendar");
   const loadingEl = document.getElementById("calendarLoading");
   const equipoMeta = document.getElementById("equipoMeta");
+  const eventModal = document.getElementById("eventModal");
+  const eventModalBody = document.getElementById("eventModalBody");
+  const eventModalClose = document.getElementById("eventModalClose");
 
   function setLoading(show){
     loadingEl.classList.toggle("show", show);
@@ -14,10 +17,39 @@
     return "00:00:00";
   }
 
+  function formatDate(isoDate){
+    if (!isoDate) return "";
+    const [year, month, day] = isoDate.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  function formatHour(timeValue){
+    if (!timeValue) return "";
+    return timeValue.slice(0, 5);
+  }
+
+  function openModal(detail){
+    if (!eventModal || !eventModalBody) return;
+    eventModalBody.innerHTML = detail.map((item) => {
+      return `
+        <div class="modal-row">
+          <span>${item.label}</span>
+          <p>${item.value || "-"}</p>
+        </div>
+      `;
+    }).join("");
+    eventModal.classList.remove("hidden");
+  }
+
+  function closeModal(){
+    if (!eventModal) return;
+    eventModal.classList.add("hidden");
+  }
+
   async function cargarReservas(){
     const { data, error } = await window.supabaseClient
       .from("reservas")
-      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, nombre_completo, equipos(nombre, tipo)")
+      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, nombre_completo, correo, tipo_usuario, num_empleado, num_cuenta, num_registro_proyecto, nombre_proyecto, equipos(nombre, tipo)")
       .order("fecha_reserva", { ascending: true });
 
     if (error){
@@ -42,7 +74,20 @@
         end: `${row.fecha_reserva}T${horaFin}`,
         backgroundColor: color,
         borderColor: color,
-        display: "block"
+        display: "block",
+        extendedProps: {
+          equipo: equipoNombre,
+          fecha: formatDate(row.fecha_reserva),
+          horaInicio: formatHour(row.hora_inicio),
+          horaFin: formatHour(row.hora_fin),
+          nombreCompleto: row.nombre_completo || "",
+          correo: row.correo || "",
+          tipoUsuario: row.tipo_usuario || "",
+          numEmpleado: row.num_empleado || "",
+          numCuenta: row.num_cuenta || "",
+          numRegistroProyecto: row.num_registro_proyecto || "",
+          nombreProyecto: row.nombre_proyecto || ""
+        }
       };
     });
   }
@@ -66,6 +111,21 @@
         center: "title",
         right: "timeGridWeek,dayGridMonth"
       },
+      eventClick: (info) => {
+        const data = info.event.extendedProps || {};
+        openModal([
+          { label: "Equipo", value: data.equipo },
+          { label: "Nombre", value: data.nombreCompleto },
+          { label: "Correo", value: data.correo },
+          { label: "Tipo", value: data.tipoUsuario },
+          { label: "Numero de empleado", value: data.numEmpleado },
+          { label: "Numero de cuenta", value: data.numCuenta },
+          { label: "Proyecto", value: data.nombreProyecto },
+          { label: "Registro", value: data.numRegistroProyecto },
+          { label: "Fecha", value: data.fecha },
+          { label: "Hora", value: data.horaInicio && data.horaFin ? `${data.horaInicio} - ${data.horaFin}` : "" }
+        ]);
+      },
       events: []
     });
 
@@ -83,5 +143,15 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  document.addEventListener("DOMContentLoaded", () => {
+    init();
+    if (eventModalClose) {
+      eventModalClose.addEventListener("click", closeModal);
+    }
+    if (eventModal) {
+      eventModal.addEventListener("click", (event) => {
+        if (event.target === eventModal) closeModal();
+      });
+    }
+  });
 })();
