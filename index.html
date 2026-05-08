@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" />
   <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 
@@ -25,9 +26,7 @@
         </div>
       </div>
 
-      <div class="header-actions">
-        <a class="btn secondary" href="dashboard.html">Ver calendario</a>
-      </div>
+      <div class="header-actions"></div>
     </div>
   </header>
 
@@ -126,7 +125,6 @@
 
             <div class="row">
               <button id="btnSubmit" class="btn" type="submit">Enviar solicitud</button>
-              <a class="btn secondary" href="dashboard.html">Ver calendario</a>
             </div>
           </form>
         </div>
@@ -149,10 +147,31 @@
         </div>
       </aside>
     </div>
+
+    <section class="card">
+      <div class="hd">
+        <h2 class="title">Todas las reservas</h2>
+      </div>
+      <div class="bd">
+        <p id="equipoMeta" class="hint" style="margin-bottom:12px;"></p>
+
+        <div class="legend" style="margin-top:12px;">
+          <span><i style="background:#0f7b3a;"></i> Aprobada</span>
+          <span><i style="background:#b88400;"></i> Pendiente</span>
+        </div>
+
+        <div class="calendar-wrap" style="margin-top:14px;">
+          <div id="calendarLoading" class="calendar-loading">Cargando disponibilidad...</div>
+          <div id="calendar"></div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script src="assets/js/supabase.js"></script>
+  <script src="assets/js/calendar.js"></script>
   <script src="assets/js/reservas.js"></script>
 </body>
 </html>
