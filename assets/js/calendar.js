@@ -50,7 +50,7 @@
       return;
     }
 
-    calendar = new FullCalendar.Calendar(calendarEl, {
+    window.calendarInstance = calendar = new FullCalendar.Calendar(calendarEl, {
       locale: "es",
       initialView: "timeGridWeek",
       height: "auto",

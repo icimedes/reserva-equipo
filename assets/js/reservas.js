@@ -8,7 +8,7 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
   const statusBox = document.getElementById("formStatus");
   const submitBtn = document.getElementById("btnSubmit");
   const clearBtn = document.getElementById("btnClearForm");
-const STORAGE_KEY = "icimedes_reserva_form";
+  const STORAGE_KEY = "icimedes_reserva_form";
   const STORAGE_TTL_MS = 2 * 60 * 60 * 1000;
   const DEBOUNCE_DELAY = 300;
   let cacheTimer;
@@ -235,8 +235,13 @@ if (!data.nombreCompleto){
 
   function toggleTipoUsuario(){
     const tipo = fields.tipoUsuario.value;
-    sectionProfesor.classList.toggle("hidden", tipo !== "profesor");
-    sectionEstudiante.classList.toggle("hidden", tipo !== "estudiante");
+    const showProfesor = tipo === "profesor";
+    const showEstudiante = tipo === "estudiante";
+    sectionProfesor.classList.toggle("hidden", !showProfesor);
+    sectionEstudiante.classList.toggle("hidden", !showEstudiante);
+
+    if (!showProfesor) fields.numEmpleado.value = "";
+    if (!showEstudiante) fields.numCuenta.value = "";
   }
 
   function applyCache(cache){
@@ -372,7 +377,7 @@ if (conflict.data){
 
     submitBtn.disabled = true;
 
-try{
+    try{
       const done = await enviarReserva(data);
       if (!done) return;
 
@@ -380,11 +385,20 @@ try{
       suppressCache = true;
       cacheLocked = true;
       suppressCache = false;
-      window.setTimeout(0, () => {
+      window.setTimeout(() => {
         writeCache(cacheSnapshot);
         cacheLocked = false;
-      });
+      }, 0);
+
+      if (window.calendarInstance) {
+        window.calendarInstance.refetchEvents();
+      }
+
       setStatus("Reserva enviada. Recibira confirmacion por correo.", "success");
+    } catch (error){
+      setStatus(error.message || "Ocurrio un error inesperado.", "error");
+    } finally{
+      submitBtn.disabled = false;
     }
   }
 
@@ -393,6 +407,7 @@ try{
     (async () => {
       await cargarEquipos();
       loadCache();
+      toggleTipoUsuario();
     })();
     form.addEventListener("input", onFormChange);
     form.addEventListener("change", onFormChange);
