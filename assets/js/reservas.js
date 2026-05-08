@@ -7,6 +7,10 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
   const form = document.getElementById("reservaForm");
   const statusBox = document.getElementById("formStatus");
   const submitBtn = document.getElementById("btnSubmit");
+  const clearBtn = document.getElementById("btnClearForm");
+  const STORAGE_KEY = "icimedes_reserva_form";
+  const STORAGE_TTL_MS = 2 * 60 * 60 * 1000;
+  let cacheTimer;
 
   const fields = {
     nombreCompleto: document.getElementById("nombreCompleto"),
@@ -37,6 +41,62 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
     statusBox.textContent = "";
     statusBox.classList.remove("success", "error");
     statusBox.classList.add("hidden");
+  }
+
+  function now(){
+    return Date.now();
+  }
+
+  function readCache(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    try{
+      return JSON.parse(raw);
+    } catch (error){
+      return null;
+    }
+  }
+
+  function scheduleExpiry(lastUpdated){
+    if (cacheTimer) window.clearTimeout(cacheTimer);
+    const elapsed = now() - lastUpdated;
+    if (elapsed >= STORAGE_TTL_MS){
+      clearCache();
+      return;
+    }
+
+    cacheTimer = window.setTimeout(() => {
+      clearCache();
+    }, STORAGE_TTL_MS - elapsed);
+  }
+
+  function writeCache(payload){
+    const cache = {
+      data: payload,
+      updatedAt: now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+    scheduleExpiry(cache.updatedAt);
+  }
+
+  function clearCache(){
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  function collectFormData(){
+    return {
+      nombreCompleto: fields.nombreCompleto.value.trim(),
+      correo: fields.correo.value.trim(),
+      tipoUsuario: fields.tipoUsuario.value,
+      numEmpleado: fields.numEmpleado.value.trim(),
+      numCuenta: fields.numCuenta.value.trim(),
+      numRegistroProyecto: fields.numRegistroProyecto.value.trim(),
+      nombreProyecto: fields.nombreProyecto.value.trim(),
+      equipoId: fields.equipoId.value,
+      fechaReserva: fields.fechaReserva.value,
+      horaInicio: fields.horaInicio.value,
+      horaFin: fields.horaFin.value
+    };
   }
 
   function setError(fieldId, message){
@@ -71,19 +131,7 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
     clearErrors();
     clearStatus();
 
-    const data = {
-      nombreCompleto: fields.nombreCompleto.value.trim(),
-      correo: fields.correo.value.trim(),
-      tipoUsuario: fields.tipoUsuario.value,
-      numEmpleado: fields.numEmpleado.value.trim(),
-      numCuenta: fields.numCuenta.value.trim(),
-      numRegistroProyecto: fields.numRegistroProyecto.value.trim(),
-      nombreProyecto: fields.nombreProyecto.value.trim(),
-      equipoId: fields.equipoId.value,
-      fechaReserva: fields.fechaReserva.value,
-      horaInicio: fields.horaInicio.value,
-      horaFin: fields.horaFin.value
-    };
+    const data = collectFormData();
 
     let ok = true;
 
@@ -181,6 +229,47 @@ if (!data.nombreCompleto){
     sectionEstudiante.classList.toggle("hidden", tipo !== "estudiante");
   }
 
+  function applyCache(cache){
+    if (!cache || !cache.data) return;
+    const data = cache.data;
+    fields.nombreCompleto.value = data.nombreCompleto || "";
+    fields.correo.value = data.correo || "";
+    fields.tipoUsuario.value = data.tipoUsuario || "";
+    fields.numEmpleado.value = data.numEmpleado || "";
+    fields.numCuenta.value = data.numCuenta || "";
+    fields.numRegistroProyecto.value = data.numRegistroProyecto || "";
+    fields.nombreProyecto.value = data.nombreProyecto || "";
+    fields.equipoId.value = data.equipoId || "";
+    fields.fechaReserva.value = data.fechaReserva || "";
+    fields.horaInicio.value = data.horaInicio || "";
+    fields.horaFin.value = data.horaFin || "";
+    toggleTipoUsuario();
+  }
+
+  function loadCache(){
+    const cache = readCache();
+    if (!cache || !cache.updatedAt) return;
+    const age = now() - cache.updatedAt;
+    if (age >= STORAGE_TTL_MS){
+      clearCache();
+      return;
+    }
+    applyCache(cache);
+    scheduleExpiry(cache.updatedAt);
+  }
+
+  function onFormChange(){
+    writeCache(collectFormData());
+  }
+
+  function onClearForm(){
+    form.reset();
+    toggleTipoUsuario();
+    clearErrors();
+    clearStatus();
+    clearCache();
+  }
+
   async function cargarEquipos(){
     if (!window.supabaseClient){
       setStatus("Falta configurar Supabase (URL o anon key).", "error");
@@ -267,6 +356,7 @@ if (conflict.data){
 
       form.reset();
       toggleTipoUsuario();
+      clearCache();
       setStatus("Reserva enviada. Recibira confirmacion por correo.", "success");
     } catch (error){
       setStatus(error.message || "Ocurrio un error inesperado.", "error");
@@ -278,6 +368,10 @@ if (conflict.data){
   document.addEventListener("DOMContentLoaded", () => {
     toggleTipoUsuario();
     cargarEquipos();
+    loadCache();
+    form.addEventListener("input", onFormChange);
+    form.addEventListener("change", onFormChange);
+    clearBtn.addEventListener("click", onClearForm);
     form.addEventListener("submit", onSubmit);
     fields.tipoUsuario.addEventListener("change", toggleTipoUsuario);
   });
