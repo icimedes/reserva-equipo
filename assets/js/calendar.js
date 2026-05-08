@@ -17,7 +17,7 @@
   async function cargarReservas(){
     const { data, error } = await window.supabaseClient
       .from("reservas")
-      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, equipos(nombre, tipo)")
+      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, nombre_completo, equipos(nombre, tipo)")
       .order("fecha_reserva", { ascending: true });
 
     if (error){
@@ -30,9 +30,14 @@
       const horaInicio = normalizarHora(row.hora_inicio);
       const horaFin = normalizarHora(row.hora_fin);
       const equipoNombre = row.equipos?.nombre || "Equipo";
+      const nombreCompleto = (row.nombre_completo || "").trim();
+      const nombrePartes = nombreCompleto ? nombreCompleto.split(/\s+/) : [];
+      const primerNombre = nombrePartes[0] || "";
+      const primerApellido = nombrePartes.length > 1 ? nombrePartes[1] : "";
+      const nombreCorto = [primerNombre, primerApellido].filter(Boolean).join(" ");
       return {
         id: row.id,
-        title: `${equipoNombre} - Ocupado`,
+        title: nombreCorto ? `${equipoNombre} - ${nombreCorto}` : `${equipoNombre} - Ocupado`,
         start: `${row.fecha_reserva}T${horaInicio}`,
         end: `${row.fecha_reserva}T${horaFin}`,
         backgroundColor: color,
