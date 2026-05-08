@@ -344,6 +344,7 @@ function onClearForm(){
 
   async function enviarReserva(payload){
     const conflict = await window.supabaseClient.rpc("existe_conflicto", {
+      p_equipo_id: payload.equipoId,
       p_fecha: payload.fechaReserva,
       p_inicio: payload.horaInicio,
       p_fin: payload.horaFin
@@ -353,8 +354,8 @@ function onClearForm(){
       throw new Error("No se pudo validar el horario.");
     }
 
-if (conflict.data){
-      setStatus("Horario ocupado en otro equipo. Elija otra hora.", "error");
+    if (conflict.data){
+      setStatus("Horario ocupado para este equipo. Elija otra hora.", "error");
       return false;
     }
 
@@ -411,7 +412,7 @@ if (conflict.data){
         window.calendarInstance.refetchEvents();
       }
 
-      setStatus("Reserva enviada. Recibira confirmacion por correo.", "success");
+      setStatus("Reserva enviada correctamente.", "success");
     } catch (error){
       setStatus(error.message || "Ocurrio un error inesperado.", "error");
     } finally{

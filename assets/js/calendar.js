@@ -17,8 +17,7 @@
   async function cargarReservas(){
     const { data, error } = await window.supabaseClient
       .from("reservas")
-      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, estado, equipos(nombre, tipo)")
-      .neq("estado", "cancelada")
+      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, equipos(nombre, tipo)")
       .order("fecha_reserva", { ascending: true });
 
     if (error){
@@ -27,7 +26,7 @@
     }
 
     return data.map((row) => {
-      const color = row.estado === "aprobada" ? "#0f7b3a" : "#b88400";
+      const color = "#0f7b3a";
       const horaInicio = normalizarHora(row.hora_inicio);
       const horaFin = normalizarHora(row.hora_fin);
       const equipoNombre = row.equipos?.nombre || "Equipo";
