@@ -328,6 +328,35 @@ label{
 }
 .calendar-loading.show{ display:flex; }
 
+.fc .fc-event{
+  position: relative;
+}
+.fc .fc-event .fc-event-main-frame{
+  position: relative;
+}
+.fc .fc-event .event-detail-btn{
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.75);
+  background: rgba(255,255,255,.18);
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.fc .fc-event .event-detail-btn:focus{
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.45);
+}
+
 .hidden{ display:none !important; }
 
 .modal{
