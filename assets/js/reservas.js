@@ -8,10 +8,14 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
   const statusBox = document.getElementById("formStatus");
   const submitBtn = document.getElementById("btnSubmit");
   const clearBtn = document.getElementById("btnClearForm");
-  const STORAGE_KEY = "icimedes_reserva_form";
+const STORAGE_KEY = "icimedes_reserva_form";
   const STORAGE_TTL_MS = 2 * 60 * 60 * 1000;
+  const DEBOUNCE_DELAY = 300;
   let cacheTimer;
   let suppressCache = false;
+  let cacheLocked = false;
+  let debounceTimer = null;
+  let isLoadingEquipos = false;
 
   const fields = {
     nombreCompleto: document.getElementById("nombreCompleto"),
@@ -264,24 +268,31 @@ if (!data.nombreCompleto){
     scheduleExpiry(cache.updatedAt);
   }
 
-  function onFormChange(){
-    if (suppressCache) return;
-    writeCache(collectFormData());
+function onFormChange(){
+    if (suppressCache || cacheLocked || isLoadingEquipos) return;
+    if (debounceTimer) window.clearTimeout(debounceTimer);
+    debounceTimer = window.setTimeout(() => {
+      writeCache(collectFormData());
+    }, DEBOUNCE_DELAY);
   }
 
-  function onClearForm(){
+function onClearForm(){
     suppressCache = true;
+    cacheLocked = true;
     form.reset();
     toggleTipoUsuario();
     clearErrors();
     clearStatus();
     clearCache();
     suppressCache = false;
+    window.setTimeout(() => { cacheLocked = false; }, 500);
   }
 
   async function cargarEquipos(){
+    isLoadingEquipos = true;
     if (!window.supabaseClient){
       setStatus("Falta configurar Supabase (URL o anon key).", "error");
+      isLoadingEquipos = false;
       return;
     }
 
@@ -293,6 +304,7 @@ if (!data.nombreCompleto){
 
     if (error){
       setStatus("No se pudieron cargar los equipos.", "error");
+      isLoadingEquipos = false;
       return;
     }
 
@@ -303,6 +315,7 @@ if (!data.nombreCompleto){
       option.textContent = `${equipo.nombre} (${equipo.tipo})`;
       fields.equipoId.appendChild(option);
     });
+    isLoadingEquipos = false;
   }
 
   async function enviarReserva(payload){
@@ -359,21 +372,21 @@ if (conflict.data){
 
     submitBtn.disabled = true;
 
-    try{
+try{
       const done = await enviarReserva(data);
       if (!done) return;
 
       const cacheSnapshot = { ...data };
       suppressCache = true;
+      cacheLocked = true;
       form.reset();
       toggleTipoUsuario();
       suppressCache = false;
-      writeCache(cacheSnapshot);
+      window.setTimeout(0, () => {
+        writeCache(cacheSnapshot);
+        cacheLocked = false;
+      });
       setStatus("Reserva enviada. Recibira confirmacion por correo.", "success");
-    } catch (error){
-      setStatus(error.message || "Ocurrio un error inesperado.", "error");
-    } finally{
-      submitBtn.disabled = false;
     }
   }
 
