@@ -75,11 +75,16 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
       data: payload,
       updatedAt: now()
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
-    scheduleExpiry(cache.updatedAt);
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+      scheduleExpiry(cache.updatedAt);
+    } catch (error){
+      if (cacheTimer) window.clearTimeout(cacheTimer);
+    }
   }
 
   function clearCache(){
+    if (cacheTimer) window.clearTimeout(cacheTimer);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -356,7 +361,6 @@ if (conflict.data){
 
       form.reset();
       toggleTipoUsuario();
-      clearCache();
       setStatus("Reserva enviada. Recibira confirmacion por correo.", "success");
     } catch (error){
       setStatus(error.message || "Ocurrio un error inesperado.", "error");
@@ -367,8 +371,10 @@ if (conflict.data){
 
   document.addEventListener("DOMContentLoaded", () => {
     toggleTipoUsuario();
-    cargarEquipos();
-    loadCache();
+    (async () => {
+      await cargarEquipos();
+      loadCache();
+    })();
     form.addEventListener("input", onFormChange);
     form.addEventListener("change", onFormChange);
     clearBtn.addEventListener("click", onClearForm);
