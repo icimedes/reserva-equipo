@@ -379,8 +379,6 @@ try{
       const cacheSnapshot = { ...data };
       suppressCache = true;
       cacheLocked = true;
-      form.reset();
-      toggleTipoUsuario();
       suppressCache = false;
       window.setTimeout(0, () => {
         writeCache(cacheSnapshot);
