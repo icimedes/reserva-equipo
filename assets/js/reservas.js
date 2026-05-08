@@ -11,6 +11,7 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
   const STORAGE_KEY = "icimedes_reserva_form";
   const STORAGE_TTL_MS = 2 * 60 * 60 * 1000;
   let cacheTimer;
+  let suppressCache = false;
 
   const fields = {
     nombreCompleto: document.getElementById("nombreCompleto"),
@@ -264,15 +265,18 @@ if (!data.nombreCompleto){
   }
 
   function onFormChange(){
+    if (suppressCache) return;
     writeCache(collectFormData());
   }
 
   function onClearForm(){
+    suppressCache = true;
     form.reset();
     toggleTipoUsuario();
     clearErrors();
     clearStatus();
     clearCache();
+    suppressCache = false;
   }
 
   async function cargarEquipos(){
@@ -359,8 +363,12 @@ if (conflict.data){
       const done = await enviarReserva(data);
       if (!done) return;
 
+      const cacheSnapshot = { ...data };
+      suppressCache = true;
       form.reset();
       toggleTipoUsuario();
+      suppressCache = false;
+      writeCache(cacheSnapshot);
       setStatus("Reserva enviada. Recibira confirmacion por correo.", "success");
     } catch (error){
       setStatus(error.message || "Ocurrio un error inesperado.", "error");
