@@ -117,6 +117,13 @@
     });
     target.appendChild(button);
   }
+  function getInitialView(){
+    if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
+      return "timeGridThreeDay";
+    }
+    return "timeGridWeek";
+  }
+
   async function init(){
     if (!window.supabaseClient){
       equipoMeta.textContent = "Falta configurar Supabase (URL o anon key).";
@@ -125,15 +132,36 @@
 
     window.calendarInstance = calendar = new FullCalendar.Calendar(calendarEl, {
       locale: "es",
-      initialView: "timeGridWeek",
+      initialView: getInitialView(),
       height: "auto",
       nowIndicator: true,
+      allDayText: "Todo el dia",
       slotMinTime: "07:00:00",
       slotMaxTime: "20:00:00",
+      views: {
+        timeGridThreeDay: {
+          type: "timeGrid",
+          duration: { days: 3 },
+          buttonText: "3 dias"
+        }
+      },
+      buttonText: {
+        today: "hoy",
+        week: "semana",
+        month: "mes"
+      },
+      buttonHints: {
+        prev: "Anterior",
+        next: "Siguiente",
+        today: "Ir a hoy",
+        month: "Vista mensual",
+        week: "Vista semanal",
+        timeGridThreeDay: "Vista 3 dias"
+      },
       headerToolbar: {
         left: "prev,next today",
         center: "title",
-        right: "timeGridWeek,dayGridMonth"
+        right: "timeGridThreeDay,timeGridWeek,dayGridMonth"
       },
       eventDidMount: (info) => {
         attachEventButton(info);
