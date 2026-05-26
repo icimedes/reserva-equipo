@@ -63,6 +63,7 @@ header{
   min-width: 0;
 }
 .logo-box{
+  display: block;
   aspect-ratio: 1332 / 800;
   height: clamp(40px, 5vw, 54px);
   width: auto;
@@ -544,9 +545,23 @@ label{
 .admin-card-body p{ margin:0; }
 .admin-card-actions{
   display:flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   justify-content:flex-end;
+}
+.admin-card-actions .btn{
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+  min-width: 0;
+}
+.admin-card-actions .btn[data-action="aprobar"]{
+  background: linear-gradient(135deg, #0f7b3a, #1a9e4a);
+}
+.admin-card-actions .btn.secondary[data-action="eliminar"]{
+  color: var(--danger);
+  border-color: rgba(180,35,24,.35);
 }
 @media (max-width: 640px){
   .admin-card-body{ grid-template-columns: 1fr; }
