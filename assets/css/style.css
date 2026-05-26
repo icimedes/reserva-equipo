@@ -481,6 +481,7 @@ label{
 }
 
 .admin-login .form-grid{ grid-template-columns: 1fr; }
+.admin-login .row{ justify-content: flex-start; }
 .admin-cards{
   display:grid;
   gap: 14px;

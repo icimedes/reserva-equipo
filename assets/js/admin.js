@@ -2,11 +2,12 @@
   const loginCard = document.getElementById("loginCard");
   const adminPanel = document.getElementById("adminPanel");
   const loginForm = document.getElementById("loginForm");
-  const adminEmail = document.getElementById("adminEmail");
+  const adminToken = document.getElementById("adminToken");
   const loginStatus = document.getElementById("loginStatus");
   const btnSendLink = document.getElementById("btnSendLink");
   const btnLogout = document.getElementById("btnLogout");
   const adminCards = document.getElementById("adminCards");
+  const ADMIN_TOKEN_KEY = "icimedes_admin_token";
 
   function setStatus(box, message, type){
     box.textContent = message;
@@ -94,23 +95,23 @@
     return card;
   }
 
-  async function fetchAdminStatus(){
-    const user = (await window.supabaseClient.auth.getUser()).data.user;
-    if (!user || !user.email) return false;
+  async function validateToken(token){
     const { data, error } = await window.supabaseClient
-      .from("admin_users")
-      .select("email")
-      .eq("email", user.email)
-      .single();
+      .rpc("admin_validate_token", { p_token: token });
 
-    return !!data && !error;
+    if (error) return false;
+    return !!data;
   }
 
   async function loadReservas(){
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token){
+      showLogin();
+      return;
+    }
+
     const { data, error } = await window.supabaseClient
-      .from("reservas")
-      .select("id, equipo_id, nombre_completo, nombre_proyecto, num_registro_proyecto, fecha_reserva, hora_inicio, hora_fin, estado, equipos(nombre, tipo)")
-      .order("fecha_reserva", { ascending: true });
+      .rpc("admin_get_reservas", { p_token: token });
 
     if (error){
       setStatus(loginStatus, "No se pudo cargar el listado.", "error");
@@ -119,19 +120,17 @@
 
     adminCards.innerHTML = "";
     data.forEach((row) => {
-      const card = buildCard({
-        ...row,
-        equipo_nombre: row.equipos?.nombre
-      });
+      const card = buildCard(row);
       adminCards.appendChild(card);
     });
   }
 
   async function updateReserva(id, estado){
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token) return false;
+
     const { error } = await window.supabaseClient
-      .from("reservas")
-      .update({ estado })
-      .eq("id", id);
+      .rpc("admin_set_estado", { p_token: token, p_id: id, p_estado: estado });
 
     if (error){
       setStatus(loginStatus, "No se pudo actualizar el estado.", "error");
@@ -140,53 +139,46 @@
     return true;
   }
 
+  function showLogin(){
+    loginCard.classList.remove("hidden");
+    adminPanel.classList.add("hidden");
+  }
+
+  function showPanel(){
+    loginCard.classList.add("hidden");
+    adminPanel.classList.remove("hidden");
+  }
+
   async function onLogin(event){
     event.preventDefault();
     clearErrors();
     clearStatus(loginStatus);
 
-    const email = adminEmail.value.trim();
-    if (!email){
-      setError("adminEmail", "El correo es obligatorio");
+    const token = adminToken.value.trim();
+    if (!token){
+      setError("adminToken", "El token es obligatorio");
       return;
     }
 
     btnSendLink.disabled = true;
     try{
-      const redirectUrl = new URL("admin.html", window.location.origin).toString();
-      const { error } = await window.supabaseClient.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectUrl }
-      });
-
-      if (error){
-        setStatus(loginStatus, "No se pudo enviar el enlace.", "error");
+      const ok = await validateToken(token);
+      if (!ok){
+        setStatus(loginStatus, "Token invalido.", "error");
         return;
       }
 
-      setStatus(loginStatus, "Enlace enviado. Revisa tu correo.", "success");
+      localStorage.setItem(ADMIN_TOKEN_KEY, token);
+      showPanel();
+      await loadReservas();
     } finally{
       btnSendLink.disabled = false;
     }
   }
 
-  async function onAuthChange(){
-    const isAdmin = await fetchAdminStatus();
-    if (!isAdmin){
-      loginCard.classList.remove("hidden");
-      adminPanel.classList.add("hidden");
-      return;
-    }
-
-    loginCard.classList.add("hidden");
-    adminPanel.classList.remove("hidden");
-    await loadReservas();
-  }
-
   async function onLogout(){
-    await window.supabaseClient.auth.signOut();
-    loginCard.classList.remove("hidden");
-    adminPanel.classList.add("hidden");
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    showLogin();
   }
 
   adminCards.addEventListener("click", async (event) => {
@@ -204,11 +196,13 @@
   btnLogout.addEventListener("click", onLogout);
   loginForm.addEventListener("submit", onLogin);
 
-  window.supabaseClient.auth.onAuthStateChange(() => {
-    onAuthChange();
-  });
-
   document.addEventListener("DOMContentLoaded", () => {
-    onAuthChange();
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token){
+      showLogin();
+      return;
+    }
+    showPanel();
+    loadReservas();
   });
 })();
