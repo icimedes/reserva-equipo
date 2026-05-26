@@ -27,6 +27,12 @@
     box.classList.remove("hidden");
   }
 
+  function setNotice(box, message){
+    box.textContent = message;
+    box.classList.remove("success", "error");
+    box.classList.remove("hidden");
+  }
+
   function clearStatus(box){
     box.textContent = "";
     box.classList.remove("success", "error");
@@ -117,7 +123,6 @@
       <div class="admin-card-header">
         <div>
           <h3>${row.nombre}</h3>
-          <p>Equipo institucional</p>
         </div>
         <span class="admin-tag">${row.activo ? "Activo" : "Inactivo"}</span>
       </div>
@@ -247,7 +252,7 @@
     btnGuardarEquipo.textContent = "Actualizar equipo";
     btnCancelarEquipo.classList.remove("hidden");
     clearErrors();
-    clearStatus(equipoStatus);
+    setNotice(equipoStatus, `Editando: ${row.nombre}`);
   }
 
   async function onLogin(event){
@@ -309,6 +314,7 @@
           setStatus(equipoStatus, error.message, "error");
           return;
         }
+        resetEquipoForm();
         setStatus(equipoStatus, "Equipo actualizado correctamente.", "success");
       } else {
         const { error } = await window.supabaseClient
@@ -320,10 +326,9 @@
           setStatus(equipoStatus, error.message, "error");
           return;
         }
+        resetEquipoForm();
         setStatus(equipoStatus, "Equipo creado correctamente.", "success");
       }
-
-      resetEquipoForm();
       await loadEquipos();
     } finally{
       btnGuardarEquipo.disabled = false;
@@ -368,6 +373,9 @@
         setStatus(equipoStatus, error.message, "error");
         return;
       }
+      if (editingEquipoId === id){
+        resetEquipoForm();
+      }
       await loadEquipos();
       return;
     }
@@ -399,6 +407,10 @@
         setStatus(equipoStatus, error.message, "error");
         return;
       }
+      if (editingEquipoId === id){
+        editingEquipoActivo = !activo;
+        setNotice(equipoStatus, `Editando: ${nombre} (${editingEquipoActivo ? "Activo" : "Inactivo"})`);
+      }
       await loadEquipos();
     }
   });
@@ -406,7 +418,10 @@
   btnLogout.addEventListener("click", onLogout);
   loginForm.addEventListener("submit", onLogin);
   equipoForm.addEventListener("submit", onEquipoSubmit);
-  btnCancelarEquipo.addEventListener("click", resetEquipoForm);
+  btnCancelarEquipo.addEventListener("click", () => {
+    resetEquipoForm();
+    setNotice(equipoStatus, "Edicion cancelada.");
+  });
 
   document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem(ADMIN_TOKEN_KEY);
