@@ -1,13 +1,24 @@
 (function(){
   const loginCard = document.getElementById("loginCard");
   const adminPanel = document.getElementById("adminPanel");
+  const equiposPanel = document.getElementById("equiposPanel");
   const loginForm = document.getElementById("loginForm");
   const adminToken = document.getElementById("adminToken");
   const loginStatus = document.getElementById("loginStatus");
   const btnSendLink = document.getElementById("btnSendLink");
   const btnLogout = document.getElementById("btnLogout");
   const adminCards = document.getElementById("adminCards");
+  const equiposCards = document.getElementById("equiposCards");
+  const equipoForm = document.getElementById("equipoForm");
+  const equipoNombre = document.getElementById("equipoNombre");
+  const equipoTipo = document.getElementById("equipoTipo");
+  const equipoDescripcion = document.getElementById("equipoDescripcion");
+  const btnGuardarEquipo = document.getElementById("btnGuardarEquipo");
+  const btnCancelarEquipo = document.getElementById("btnCancelarEquipo");
+  const equipoStatus = document.getElementById("equipoStatus");
   const ADMIN_TOKEN_KEY = "icimedes_admin_token";
+
+  let editingEquipoId = null;
 
   function setStatus(box, message, type){
     box.textContent = message;
@@ -55,7 +66,7 @@
     return "pending";
   }
 
-  function buildCard(row){
+  function buildReservaCard(row){
     const card = document.createElement("div");
     card.className = `admin-card ${estadoClass(row.estado)}`;
     card.dataset.id = row.id;
@@ -96,6 +107,38 @@
     return card;
   }
 
+  function buildEquipoCard(row){
+    const card = document.createElement("div");
+    card.className = `admin-card ${row.activo ? "approved" : "rejected"}`;
+    card.dataset.id = row.id;
+
+    card.innerHTML = `
+      <div class="admin-card-header">
+        <div>
+          <h3>${row.nombre}</h3>
+          <p>Tipo: ${row.tipo}${row.descripcion ? " - " + row.descripcion : ""}</p>
+        </div>
+        <span class="admin-tag">${row.activo ? "Activo" : "Inactivo"}</span>
+      </div>
+      <div class="admin-card-body">
+        <div>
+          <span>Reservas</span>
+          <p>${row.total_reservas}</p>
+        </div>
+        <div>
+          <span>Descripcion</span>
+          <p>${row.descripcion || "-"}</p>
+        </div>
+      </div>
+      <div class="admin-card-actions">
+        <button class="btn secondary" data-action="editar">Editar</button>
+        <button class="btn secondary" data-action="eliminar" style="color:var(--danger);border-color:rgba(180,35,24,.35);">Eliminar</button>
+      </div>
+    `;
+
+    return card;
+  }
+
   async function validateToken(token){
     const { data, error } = await window.supabaseClient
       .rpc("admin_validate_token", { p_token: token });
@@ -120,9 +163,28 @@
     }
 
     adminCards.innerHTML = "";
-    data.forEach((row) => {
-      const card = buildCard(row);
+    (data || []).forEach((row) => {
+      const card = buildReservaCard(row);
       adminCards.appendChild(card);
+    });
+  }
+
+  async function loadEquipos(){
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token) return;
+
+    const { data, error } = await window.supabaseClient
+      .rpc("admin_get_equipos", { p_token: token });
+
+    if (error){
+      setStatus(equipoStatus, "No se pudieron cargar los equipos.", "error");
+      return;
+    }
+
+    equiposCards.innerHTML = "";
+    (data || []).forEach((row) => {
+      const card = buildEquipoCard(row);
+      equiposCards.appendChild(card);
     });
   }
 
@@ -157,11 +219,33 @@
   function showLogin(){
     loginCard.classList.remove("hidden");
     adminPanel.classList.add("hidden");
+    equiposPanel.classList.add("hidden");
   }
 
   function showPanel(){
     loginCard.classList.add("hidden");
     adminPanel.classList.remove("hidden");
+    equiposPanel.classList.remove("hidden");
+  }
+
+  function resetEquipoForm(){
+    equipoForm.reset();
+    editingEquipoId = null;
+    btnGuardarEquipo.textContent = "Guardar equipo";
+    btnCancelarEquipo.classList.add("hidden");
+    clearErrors();
+    clearStatus(equipoStatus);
+  }
+
+  function fillEquipoForm(row){
+    equipoNombre.value = row.nombre;
+    equipoTipo.value = row.tipo;
+    equipoDescripcion.value = row.descripcion || "";
+    editingEquipoId = row.id;
+    btnGuardarEquipo.textContent = "Actualizar equipo";
+    btnCancelarEquipo.classList.remove("hidden");
+    clearErrors();
+    clearStatus(equipoStatus);
   }
 
   async function onLogin(event){
@@ -185,7 +269,7 @@
 
       localStorage.setItem(ADMIN_TOKEN_KEY, token);
       showPanel();
-      await loadReservas();
+      await Promise.all([loadReservas(), loadEquipos()]);
     } finally{
       btnSendLink.disabled = false;
     }
@@ -194,6 +278,64 @@
   async function onLogout(){
     localStorage.removeItem(ADMIN_TOKEN_KEY);
     showLogin();
+  }
+
+  async function onEquipoSubmit(event){
+    event.preventDefault();
+    clearErrors();
+    clearStatus(equipoStatus);
+
+    const nombre = equipoNombre.value.trim();
+    const tipo = equipoTipo.value.trim();
+    const descripcion = equipoDescripcion.value.trim() || null;
+
+    if (!nombre){
+      setError("equipoNombre", "El nombre es obligatorio");
+      return;
+    }
+    if (!tipo){
+      setError("equipoTipo", "El tipo es obligatorio");
+      return;
+    }
+
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    btnGuardarEquipo.disabled = true;
+
+    try{
+      if (editingEquipoId){
+        const { error } = await window.supabaseClient
+          .rpc("admin_update_equipo", {
+            p_token: token,
+            p_id: editingEquipoId,
+            p_nombre: nombre,
+            p_tipo: tipo,
+            p_descripcion: descripcion
+          });
+        if (error){
+          setStatus(equipoStatus, error.message, "error");
+          return;
+        }
+        setStatus(equipoStatus, "Equipo actualizado correctamente.", "success");
+      } else {
+        const { error } = await window.supabaseClient
+          .rpc("admin_create_equipo", {
+            p_token: token,
+            p_nombre: nombre,
+            p_tipo: tipo,
+            p_descripcion: descripcion
+          });
+        if (error){
+          setStatus(equipoStatus, error.message, "error");
+          return;
+        }
+        setStatus(equipoStatus, "Equipo creado correctamente.", "success");
+      }
+
+      resetEquipoForm();
+      await loadEquipos();
+    } finally{
+      btnGuardarEquipo.disabled = false;
+    }
   }
 
   adminCards.addEventListener("click", async (event) => {
@@ -216,8 +358,44 @@
     if (done) await loadReservas();
   });
 
+  equiposCards.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const card = event.target.closest(".admin-card");
+    if (!card) return;
+    const id = card.dataset.id;
+    const action = button.dataset.action;
+
+    if (action === "eliminar"){
+      const ok = window.confirm("Desea eliminar este equipo?");
+      if (!ok) return;
+      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+      const { error } = await window.supabaseClient
+        .rpc("admin_delete_equipo", { p_token: token, p_id: id });
+      if (error){
+        setStatus(equipoStatus, error.message, "error");
+        return;
+      }
+      await loadEquipos();
+      return;
+    }
+
+    if (action === "editar"){
+      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+      const { data } = await window.supabaseClient
+        .rpc("admin_get_equipos", { p_token: token });
+      const equipo = (data || []).find(e => e.id === id);
+      if (equipo){
+        fillEquipoForm(equipo);
+        equipoNombre.focus();
+      }
+    }
+  });
+
   btnLogout.addEventListener("click", onLogout);
   loginForm.addEventListener("submit", onLogin);
+  equipoForm.addEventListener("submit", onEquipoSubmit);
+  btnCancelarEquipo.addEventListener("click", resetEquipoForm);
 
   document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem(ADMIN_TOKEN_KEY);
@@ -226,6 +404,6 @@
       return;
     }
     showPanel();
-    loadReservas();
+    Promise.all([loadReservas(), loadEquipos()]);
   });
 })();
