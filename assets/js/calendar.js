@@ -48,8 +48,8 @@
 
   async function cargarReservas(){
     const { data, error } = await window.supabaseClient
-      .from("reservas")
-      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, nombre_completo, correo, tipo_usuario, num_empleado, num_cuenta, num_registro_proyecto, nombre_proyecto, equipos(nombre, tipo)")
+      .from("vw_reservas_calendario")
+      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, nombre_completo, estado, equipo_nombre, equipo_tipo")
       .order("fecha_reserva", { ascending: true });
 
     if (error){
@@ -58,10 +58,10 @@
     }
 
     return data.map((row) => {
-      const color = "#0f7b3a";
+      const color = row.estado === "aprobada" ? "#0f7b3a" : row.estado === "rechazada" ? "#b42318" : "#b88400";
       const horaInicio = normalizarHora(row.hora_inicio);
       const horaFin = normalizarHora(row.hora_fin);
-      const equipoNombre = row.equipos?.nombre || "Equipo";
+      const equipoNombre = row.equipo_nombre || "Equipo";
       const nombreCompleto = (row.nombre_completo || "").trim();
       const nombrePartes = nombreCompleto ? nombreCompleto.split(/\s+/) : [];
       const primerNombre = nombrePartes[0] || "";
@@ -77,6 +77,7 @@
         display: "block",
         extendedProps: {
           equipo: equipoNombre,
+          estado: row.estado || "pendiente",
           fecha: formatDate(row.fecha_reserva),
           horaInicio: formatHour(row.hora_inicio),
           horaFin: formatHour(row.hora_fin),
@@ -97,6 +98,7 @@
     return [
       { label: "Equipo", value: data.equipo },
       { label: "Nombre", value: data.nombreCompleto },
+      { label: "Estado", value: data.estado },
       { label: "Fecha", value: data.fecha },
       { label: "Hora", value: data.horaInicio && data.horaFin ? `${data.horaInicio} - ${data.horaFin}` : "" }
     ];
@@ -166,21 +168,24 @@
       eventDidMount: (info) => {
         attachEventButton(info);
       },
-      events: []
+      events: async function(fetchInfo, successCallback, failureCallback){
+        setLoading(true);
+        try{
+          const events = await cargarReservas();
+          if (events.length === 0) {
+            equipoMeta.textContent = "No hay reservas registradas.";
+          } else {
+            equipoMeta.textContent = "Todas las reservas de equipos.";
+          }
+          successCallback(events);
+        } catch (error){
+          failureCallback(error);
+        }
+        setLoading(false);
+      }
     });
 
     calendar.render();
-
-    setLoading(true);
-    const events = await cargarReservas();
-    calendar.addEventSource(events);
-    setLoading(false);
-
-    if (events.length === 0) {
-      equipoMeta.textContent = "No hay reservas registradas.";
-    } else {
-      equipoMeta.textContent = "Todas las reservas de equipos.";
-    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {

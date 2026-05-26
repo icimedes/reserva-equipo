@@ -370,6 +370,7 @@ function onClearForm(){
         ? payload.numRegistroProyecto.toUpperCase() 
         : `PI-${payload.numRegistroProyecto}-DICIHT`,
       nombre_proyecto: payload.nombreProyecto,
+      estado: "pendiente",
       fecha_reserva: payload.fechaReserva,
       hora_inicio: payload.horaInicio,
       hora_fin: payload.horaFin

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ICIMEDES | Panel Administrativo</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="logo-box" aria-hidden="true">
+          <img id="logoImg" class="logo" src="assets/img/logo.jpg" alt="" />
+          <div id="logoFallback" class="logo-fallback">IC</div>
+        </div>
+        <div>
+          <h1>ICIMEDES · Panel Administrativo</h1>
+          <span class="sub">Aprobaciones de reservas</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnLogout" class="btn secondary" type="button">Cerrar sesion</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <div>
+        <span class="badge">Administracion</span>
+        <h2>Reservas pendientes y aprobadas</h2>
+        <p>Gestiona el estado de las solicitudes en tiempo real.</p>
+      </div>
+    </div>
+
+    <section id="loginCard" class="card admin-login">
+      <div class="hd">
+        <h2 class="title">Acceso al panel</h2>
+      </div>
+      <div class="bd">
+        <form id="loginForm" novalidate>
+          <div class="form-grid">
+            <div>
+              <label for="adminEmail">Correo institucional</label>
+              <input id="adminEmail" class="input" type="email" placeholder="usuario@unah.edu.hn" />
+              <p class="error-text" data-error-for="adminEmail"></p>
+            </div>
+            <div class="full">
+              <div id="loginStatus" class="notice hidden" aria-live="polite"></div>
+            </div>
+          </div>
+          <div class="row">
+            <button id="btnSendLink" class="btn" type="submit">Enviar enlace</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="adminPanel" class="card hidden">
+      <div class="hd">
+        <h2 class="title">Solicitudes</h2>
+      </div>
+      <div class="bd">
+        <div class="legend" style="margin-bottom:12px;">
+          <span><i style="background:#0f7b3a;"></i> Aprobada</span>
+          <span><i style="background:#b88400;"></i> Pendiente</span>
+          <span><i style="background:#b42318;"></i> Rechazada</span>
+        </div>
+        <div id="adminCards" class="admin-cards"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
