@@ -153,9 +153,10 @@
 
     btnSendLink.disabled = true;
     try{
+      const redirectUrl = new URL("admin.html", window.location.origin).toString();
       const { error } = await window.supabaseClient.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.href }
+        options: { emailRedirectTo: redirectUrl }
       });
 
       if (error){
