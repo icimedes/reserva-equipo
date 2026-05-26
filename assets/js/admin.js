@@ -87,6 +87,7 @@
         </div>
       </div>
       <div class="admin-card-actions">
+        <button class="btn secondary" data-action="eliminar">Eliminar</button>
         <button class="btn secondary" data-action="rechazar">Rechazar</button>
         <button class="btn" data-action="aprobar">Aprobar</button>
       </div>
@@ -134,6 +135,20 @@
 
     if (error){
       setStatus(loginStatus, "No se pudo actualizar el estado.", "error");
+      return false;
+    }
+    return true;
+  }
+
+  async function deleteReserva(id){
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token) return false;
+
+    const { error } = await window.supabaseClient
+      .rpc("admin_delete_reserva", { p_token: token, p_id: id });
+
+    if (error){
+      setStatus(loginStatus, "No se pudo eliminar la reserva.", "error");
       return false;
     }
     return true;
@@ -188,6 +203,14 @@
     if (!card) return;
     const id = card.dataset.id;
     const action = button.dataset.action;
+    if (action === "eliminar"){
+      const ok = window.confirm("Desea eliminar esta reserva?");
+      if (!ok) return;
+      const done = await deleteReserva(id);
+      if (done) await loadReservas();
+      return;
+    }
+
     const estado = action === "aprobar" ? "aprobada" : "rechazada";
     const done = await updateReserva(id, estado);
     if (done) await loadReservas();
