@@ -49,7 +49,7 @@
   async function cargarReservas(){
     const { data, error } = await window.supabaseClient
       .from("vw_reservas_calendario")
-      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, nombre_completo, estado, equipo_nombre, equipo_tipo")
+      .select("id, equipo_id, fecha_reserva, hora_inicio, hora_fin, nombre_completo, estado, equipo_nombre")
       .order("fecha_reserva", { ascending: true });
 
     if (error){

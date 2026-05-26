@@ -315,7 +315,7 @@ function onClearForm(){
 
     const { data, error } = await window.supabaseClient
       .from("equipos")
-      .select("id, nombre, tipo, descripcion, activo")
+      .select("id, nombre, activo")
       .eq("activo", true)
       .order("nombre", { ascending: true });
 
@@ -336,7 +336,7 @@ function onClearForm(){
     data.forEach((equipo) => {
       const option = document.createElement("option");
       option.value = equipo.id;
-      option.textContent = `${equipo.nombre} (${equipo.tipo})`;
+      option.textContent = equipo.nombre;
       fields.equipoId.appendChild(option);
     });
     isLoadingEquipos = false;

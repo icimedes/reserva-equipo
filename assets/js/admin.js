@@ -11,14 +11,13 @@
   const equiposCards = document.getElementById("equiposCards");
   const equipoForm = document.getElementById("equipoForm");
   const equipoNombre = document.getElementById("equipoNombre");
-  const equipoTipo = document.getElementById("equipoTipo");
-  const equipoDescripcion = document.getElementById("equipoDescripcion");
   const btnGuardarEquipo = document.getElementById("btnGuardarEquipo");
   const btnCancelarEquipo = document.getElementById("btnCancelarEquipo");
   const equipoStatus = document.getElementById("equipoStatus");
   const ADMIN_TOKEN_KEY = "icimedes_admin_token";
 
   let editingEquipoId = null;
+  let editingEquipoActivo = true;
 
   function setStatus(box, message, type){
     box.textContent = message;
@@ -111,12 +110,14 @@
     const card = document.createElement("div");
     card.className = `admin-card ${row.activo ? "approved" : "rejected"}`;
     card.dataset.id = row.id;
+    card.dataset.nombre = row.nombre;
+    card.dataset.activo = row.activo ? "1" : "0";
 
     card.innerHTML = `
       <div class="admin-card-header">
         <div>
           <h3>${row.nombre}</h3>
-          <p>Tipo: ${row.tipo}${row.descripcion ? " - " + row.descripcion : ""}</p>
+          <p>Equipo institucional</p>
         </div>
         <span class="admin-tag">${row.activo ? "Activo" : "Inactivo"}</span>
       </div>
@@ -126,12 +127,13 @@
           <p>${row.total_reservas}</p>
         </div>
         <div>
-          <span>Descripcion</span>
-          <p>${row.descripcion || "-"}</p>
+          <span>Estado</span>
+          <p>${row.activo ? "Disponible" : "Inactivo"}</p>
         </div>
       </div>
       <div class="admin-card-actions">
         <button class="btn secondary" data-action="editar">Editar</button>
+        <button class="btn secondary" data-action="toggle">${row.activo ? "Desactivar" : "Activar"}</button>
         <button class="btn secondary" data-action="eliminar" style="color:var(--danger);border-color:rgba(180,35,24,.35);">Eliminar</button>
       </div>
     `;
@@ -231,6 +233,7 @@
   function resetEquipoForm(){
     equipoForm.reset();
     editingEquipoId = null;
+    editingEquipoActivo = true;
     btnGuardarEquipo.textContent = "Guardar equipo";
     btnCancelarEquipo.classList.add("hidden");
     clearErrors();
@@ -239,9 +242,8 @@
 
   function fillEquipoForm(row){
     equipoNombre.value = row.nombre;
-    equipoTipo.value = row.tipo;
-    equipoDescripcion.value = row.descripcion || "";
     editingEquipoId = row.id;
+    editingEquipoActivo = row.activo;
     btnGuardarEquipo.textContent = "Actualizar equipo";
     btnCancelarEquipo.classList.remove("hidden");
     clearErrors();
@@ -286,18 +288,11 @@
     clearStatus(equipoStatus);
 
     const nombre = equipoNombre.value.trim();
-    const tipo = equipoTipo.value.trim();
-    const descripcion = equipoDescripcion.value.trim() || null;
 
     if (!nombre){
       setError("equipoNombre", "El nombre es obligatorio");
       return;
     }
-    if (!tipo){
-      setError("equipoTipo", "El tipo es obligatorio");
-      return;
-    }
-
     const token = localStorage.getItem(ADMIN_TOKEN_KEY);
     btnGuardarEquipo.disabled = true;
 
@@ -308,8 +303,7 @@
             p_token: token,
             p_id: editingEquipoId,
             p_nombre: nombre,
-            p_tipo: tipo,
-            p_descripcion: descripcion
+            p_activo: editingEquipoActivo
           });
         if (error){
           setStatus(equipoStatus, error.message, "error");
@@ -320,9 +314,7 @@
         const { error } = await window.supabaseClient
           .rpc("admin_create_equipo", {
             p_token: token,
-            p_nombre: nombre,
-            p_tipo: tipo,
-            p_descripcion: descripcion
+            p_nombre: nombre
           });
         if (error){
           setStatus(equipoStatus, error.message, "error");
@@ -389,6 +381,25 @@
         fillEquipoForm(equipo);
         equipoNombre.focus();
       }
+      return;
+    }
+
+    if (action === "toggle"){
+      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+      const nombre = card.dataset.nombre || "";
+      const activo = card.dataset.activo === "1";
+      const { error } = await window.supabaseClient
+        .rpc("admin_update_equipo", {
+          p_token: token,
+          p_id: id,
+          p_nombre: nombre,
+          p_activo: !activo
+        });
+      if (error){
+        setStatus(equipoStatus, error.message, "error");
+        return;
+      }
+      await loadEquipos();
     }
   });
 
