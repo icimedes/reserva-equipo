@@ -210,7 +210,7 @@
   }
 
   async function loadReservas(){
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
     if (!token){
       showLogin();
       return;
@@ -232,7 +232,7 @@
   }
 
   async function loadEquipos(){
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
     if (!token) return;
 
     const { data, error } = await window.supabaseClient
@@ -251,7 +251,7 @@
   }
 
   async function updateReserva(id, estado){
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
     if (!token) return false;
 
     const { error } = await window.supabaseClient
@@ -265,7 +265,7 @@
   }
 
   async function deleteReserva(id){
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
     if (!token) return false;
 
     const { error } = await window.supabaseClient
@@ -349,7 +349,7 @@
         return;
       }
 
-      localStorage.setItem(ADMIN_TOKEN_KEY, token);
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
       showPanel(token);
     } finally{
       btnSendLink.disabled = false;
@@ -357,7 +357,7 @@
   }
 
   async function onLogout(){
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
     showLogin();
   }
 
@@ -372,7 +372,7 @@
       setError("equipoNombre", "El nombre es obligatorio");
       return;
     }
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
     btnGuardarEquipo.disabled = true;
 
     try{
@@ -440,7 +440,7 @@
     if (action === "eliminar"){
       const ok = window.confirm("Desea eliminar este equipo?");
       if (!ok) return;
-      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
       const { error } = await window.supabaseClient
         .rpc("admin_delete_equipo", { p_token: token, p_id: id });
       if (error){
@@ -455,7 +455,7 @@
     }
 
     if (action === "editar"){
-      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
       const { data } = await window.supabaseClient
         .rpc("admin_get_equipos", { p_token: token });
       const equipo = (data || []).find(e => e.id === id);
@@ -467,7 +467,7 @@
     }
 
     if (action === "toggle"){
-      const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
       const nombre = card.dataset.nombre || "";
       const activo = card.dataset.activo === "1";
       const { error } = await window.supabaseClient
@@ -506,7 +506,7 @@
   });
 
   document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY);
     if (!token){
       showLogin();
       return;

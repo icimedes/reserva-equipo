@@ -55,7 +55,7 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
   }
 
   function readCache(){
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     try{
       return JSON.parse(raw);
@@ -83,7 +83,7 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
       updatedAt: now()
     };
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
       scheduleExpiry(cache.updatedAt);
     } catch (error){
       if (cacheTimer) window.clearTimeout(cacheTimer);
@@ -92,7 +92,7 @@ const REGISTRO_PROYECTO_REGEX = /^(\d+|PI-\d+-DICIHT)$/i;
 
   function clearCache(){
     if (cacheTimer) window.clearTimeout(cacheTimer);
-    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
   }
 
   function collectFormData(){
