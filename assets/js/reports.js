@@ -314,28 +314,31 @@
       img.style.width = c.offsetWidth + "px";
       img.style.height = c.offsetHeight + "px";
       img.style.display = "block";
+      img.style.margin = "0 auto";
       c.parentNode.insertBefore(img, c);
       c.style.display = "none";
       saved.push({ canvas: c, img: img });
     });
 
-    html2pdf()
-      .set({
-        margin: [8, 8, 8, 8],
-        filename: `reporte_reservas_${desde || "todo"}_${hasta || "todo"}.pdf`,
-        image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-      })
-      .from(bodyEl)
-      .save()
-      .then(() => restore(saved, filters))
-      .catch(err => {
-        restore(saved, filters);
-        console.error("Error al exportar PDF:", err);
-        alert("Error al generar PDF. Intenta con CSV.");
-      });
+    setTimeout(() => {
+      html2pdf()
+        .set({
+          margin: [8, 8, 8, 8],
+          filename: `reporte_reservas_${desde || "todo"}_${hasta || "todo"}.pdf`,
+          image: { type: "jpeg", quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, logging: true, allowTaint: true },
+          jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+        })
+        .from(bodyEl)
+        .save()
+        .then(() => restore(saved, filters))
+        .catch(err => {
+          restore(saved, filters);
+          console.error("Error al exportar PDF:", err);
+          alert("Error al generar PDF: " + err.message + ". Intenta con CSV.");
+        });
+    }, 500);
   }
 
   function restore(saved, filters){
