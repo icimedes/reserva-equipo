@@ -401,30 +401,32 @@
     const hastaLabel = hasta ? formatFecha(hasta) : "—";
     const reportHTML = buildReportHTML(filtered, desdeLabel, hastaLabel);
 
-    const container = document.createElement("div");
-    container.style.cssText = "position:absolute;left:-9999px;top:0;width:1000px;z-index:-1;";
-    container.innerHTML = reportHTML;
-    document.body.appendChild(container);
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100vh;z-index:99999;background:#fff;overflow:auto;padding:0;";
+    overlay.innerHTML = `<div style="max-width:800px;margin:0 auto;padding:20px;">${reportHTML}</div>`;
+    document.body.appendChild(overlay);
 
-    html2pdf()
-      .set({
-        margin: [8, 8, 8, 8],
-        filename: `reporte_reservas_${desde || "todo"}_${hasta || "todo"}.pdf`,
-        image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-      })
-      .from(container)
-      .save()
-      .then(() => {
-        if (container.parentNode) container.parentNode.removeChild(container);
-      })
-      .catch(err => {
-        if (container.parentNode) container.parentNode.removeChild(container);
-        console.error("Error al exportar PDF:", err);
-        alert("Error al generar PDF. Intenta con CSV.");
-      });
+    requestAnimationFrame(() => {
+      html2pdf()
+        .set({
+          margin: [8, 8, 8, 8],
+          filename: `reporte_reservas_${desde || "todo"}_${hasta || "todo"}.pdf`,
+          image: { type: "jpeg", quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+        })
+        .from(overlay)
+        .save()
+        .then(() => {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        })
+        .catch(err => {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          console.error("Error al exportar PDF:", err);
+          alert("Error al generar PDF. Intenta con CSV.");
+        });
+    });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
