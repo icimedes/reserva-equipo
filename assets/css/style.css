@@ -438,6 +438,10 @@ label{
   .hero h2{ font-size: 20px; }
   .input, select, textarea{ padding: 10px 11px; }
   .calendar-wrap{ min-height: 380px; }
+  .kpi-grid{ grid-template-columns: 1fr; }
+  .kpi-card{ padding: 10px 12px; }
+  .chart-box{ padding: 10px; }
+  .chart-wrap{ height: 160px; }
 }
 .modal-header{
   display:flex;
@@ -666,6 +670,12 @@ label{
 .chart-wrap{
   position: relative;
   height: 220px;
+  width: 100%;
+  overflow: hidden;
+}
+.chart-wrap canvas{
+  max-width: 100%;
+  height: auto !important;
 }
 
 .reports-table{
@@ -711,6 +721,6 @@ label{
   .kpi-num{ font-size: 22px; }
   .chart-wrap{ height: 180px; }
   .reports-filters > div{ min-width: 100%; }
-  .reports-filter-actions{ width: 100%; }
-  .reports-filter-actions .btn{ flex: 1; }
+  .reports-filter-actions{ width: 100%; flex-wrap: wrap; }
+  .reports-filter-actions .btn{ flex: 1; min-width: 80px; }
 }
