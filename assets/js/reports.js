@@ -265,15 +265,49 @@
   }
 
   function exportPDF(){
+    if (typeof html2pdf === "undefined"){
+      alert("Libreria PDF no cargada. Recarga la pagina.");
+      return;
+    }
     const element = getEl("reportesPanel").querySelector(".bd");
     if (!element) return;
-    html2pdf().set({
-      margin: [10, 10, 10, 10],
-      filename: `reporte_reservas_${getEl("reportDesde").value}_${getEl("reportHasta").value}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-    }).from(element).save();
+
+    const canvases = element.querySelectorAll("canvas");
+    const replacements = [];
+    canvases.forEach(c => {
+      const img = document.createElement("img");
+      img.src = c.toDataURL("image/png");
+      img.style.width = c.clientWidth + "px";
+      img.style.height = c.clientHeight + "px";
+      c.parentNode.insertBefore(img, c);
+      c.style.display = "none";
+      replacements.push({ canvas: c, img: img });
+    });
+
+    html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename: `reporte_reservas_${getEl("reportDesde").value}_${getEl("reportHasta").value}.pdf`,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+      })
+      .from(element)
+      .save()
+      .then(() => {
+        replacements.forEach(r => {
+          r.canvas.style.display = "";
+          if (r.img.parentNode) r.img.parentNode.removeChild(r.img);
+        });
+      })
+      .catch(err => {
+        replacements.forEach(r => {
+          r.canvas.style.display = "";
+          if (r.img.parentNode) r.img.parentNode.removeChild(r.img);
+        });
+        console.error("Error al exportar PDF:", err);
+        alert("Error al generar PDF. Intenta con CSV.");
+      });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
