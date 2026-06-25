@@ -286,11 +286,6 @@
   }
 
   function exportPDF(){
-    if (typeof html2pdf === "undefined"){
-      alert("Libreria PDF no cargada. Recarga la pagina.");
-      return;
-    }
-
     const desde = getEl("reportDesde").value;
     const hasta = getEl("reportHasta").value;
     const filtered = filterByDateRange(cachedData, desde, hasta);
@@ -300,53 +295,123 @@
       return;
     }
 
-    const panel = getEl("reportesPanel");
-    const bodyEl = panel.querySelector(".bd");
-    const filters = panel.querySelector(".reports-filters");
+    const desdeLabel = desde ? formatFecha(desde) : "—";
+    const hastaLabel = hasta ? formatFecha(hasta) : "—";
+    const total = filtered.length;
+    const aprobadas = countByStatus(filtered, "aprobada");
+    const pendientes = countByStatus(filtered, "pendiente");
+    const rechazadas = countByStatus(filtered, "rechazada");
 
-    if (filters) filters.style.display = "none";
+    const hourlyCanvas = getEl("chartHourly");
+    const weeklyCanvas = getEl("chartWeekly");
+    const hourlyImg = hourlyCanvas ? hourlyCanvas.toDataURL("image/png") : "";
+    const weeklyImg = weeklyCanvas ? weeklyCanvas.toDataURL("image/png") : "";
 
-    const canvases = bodyEl.querySelectorAll("canvas");
-    const saved = [];
-    canvases.forEach(c => {
-      const img = document.createElement("img");
-      img.src = c.toDataURL("image/png");
-      img.style.width = c.offsetWidth + "px";
-      img.style.height = c.offsetHeight + "px";
-      img.style.display = "block";
-      img.style.margin = "0 auto";
-      c.parentNode.insertBefore(img, c);
-      c.style.display = "none";
-      saved.push({ canvas: c, img: img });
-    });
+    const now = new Date();
+    const fechaGen = now.toLocaleDateString("es-HN", { day:"2-digit", month:"2-digit", year:"numeric" });
+    const horaGen = now.toLocaleTimeString("es-HN", { hour:"2-digit", minute:"2-digit" });
+
+    const rows = filtered.map(r =>
+      `<tr>
+        <td>${r.equipo_nombre || "-"}</td>
+        <td>${r.nombre_completo || "-"}</td>
+        <td>${r.nombre_proyecto || "-"}</td>
+        <td>${formatFecha(r.fecha_reserva)}</td>
+        <td>${formatHora(r.hora_inicio)} - ${formatHora(r.hora_fin)}</td>
+        <td><span class="st-${r.estado}">${r.estado}</span></td>
+      </tr>`
+    ).join("");
+
+    const html = `<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Manrope','Segoe UI',Arial,sans-serif;color:#0b1220;padding:20px;max-width:100%;}
+  h1,h2{font-family:'DM Serif Display','Times New Roman',serif;}
+  .header{border-bottom:3px solid #002a5c;padding-bottom:12px;margin-bottom:18px;}
+  .header h1{font-size:22px;color:#002a5c;margin:0;}
+  .header .sub{font-size:12px;color:#5b667a;margin:4px 0 0 0;}
+  .header h2{font-size:16px;margin:14px 0 4px 0;}
+  .header .periodo{font-size:12px;color:#5b667a;}
+  .header .gen{font-size:11px;color:#5b667a;text-align:right;margin-bottom:8px;}
+  .kpis{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .kpi{flex:1;min-width:100px;background:#fff;border:1px solid #e4e9f4;border-radius:8px;padding:12px;text-align:center;}
+  .kpi .num{font-size:24px;font-weight:800;}
+  .kpi .lbl{font-size:10px;color:#5b667a;font-weight:700;margin-top:2px;}
+  .kpi-apr{border-left:4px solid #0f7b3a;}.kpi-apr .num{color:#0f7b3a;}
+  .kpi-pen{border-left:4px solid #b88400;}.kpi-pen .num{color:#b88400;}
+  .kpi-rec{border-left:4px solid #b42318;}.kpi-rec .num{color:#b42318;}
+  .charts{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+  .chart-box{flex:1;min-width:260px;background:#fff;border:1px solid #e4e9f4;border-radius:8px;padding:10px;}
+  .chart-box h3{font-size:12px;font-weight:700;margin:0 0 8px 0;}
+  .chart-box img{width:100%;display:block;}
+  table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px;}
+  th{text-align:left;padding:6px 8px;background:#f0f3fa;border-bottom:2px solid #e4e9f4;font-weight:700;color:#002a5c;font-size:10px;}
+  td{padding:5px 8px;border-bottom:1px solid #e4e9f4;font-size:10px;}
+  tr:nth-child(even) td{background:#f8f9fc;}
+  .st-aprobada{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(15,123,58,.15);color:#0f7b3a;}
+  .st-pendiente{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(184,132,0,.15);color:#7b5a00;}
+  .st-rechazada{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(180,35,24,.15);color:#b42318;}
+  @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}
+</style></head>
+<body>
+  <div class="header">
+    <div class="gen">Generado: ${fechaGen} ${horaGen}</div>
+    <h1>ICIMEDES</h1>
+    <p class="sub">Instituto de Investigacion en Ciencias Medicas y Derecho a la Salud</p>
+    <h2>Reporte de Reservas</h2>
+    <p class="periodo">Periodo: ${desdeLabel} al ${hastaLabel} &middot; ${total} reservas</p>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="num">${total}</div><div class="lbl">TOTAL</div></div>
+    <div class="kpi kpi-apr"><div class="num">${aprobadas}</div><div class="lbl">APROBADAS</div></div>
+    <div class="kpi kpi-pen"><div class="num">${pendientes}</div><div class="lbl">PENDIENTES</div></div>
+    <div class="kpi kpi-rec"><div class="num">${rechazadas}</div><div class="lbl">RECHAZADAS</div></div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-box"><h3>Reservas por hora del dia</h3>${hourlyImg ? '<img src="'+hourlyImg+'" />' : '<p>Sin datos</p>'}</div>
+    <div class="chart-box"><h3>Reservas por dia de la semana</h3>${weeklyImg ? '<img src="'+weeklyImg+'" />' : '<p>Sin datos</p>'}</div>
+  </div>
+
+  <table><thead><tr>
+    <th>Equipo</th><th>Solicitante</th><th>Proyecto</th><th>Fecha</th><th>Hora</th><th>Estado</th>
+  </tr></thead><tbody>${rows}</tbody></table>
+</body></html>`;
+
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;border:none;background:#fff;";
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+
+    iframe.onload = function(){
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 1000);
+      }, 300);
+    };
+
+    iframe.contentWindow.onfocus = function(){
+      if (!iframe._printed){
+        iframe._printed = true;
+      }
+    };
+
+    window.addEventListener("afterprint", function h(){
+      window.removeEventListener("afterprint", h);
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }, { once: true });
 
     setTimeout(() => {
-      html2pdf()
-        .set({
-          margin: [8, 8, 8, 8],
-          filename: `reporte_reservas_${desde || "todo"}_${hasta || "todo"}.pdf`,
-          image: { type: "jpeg", quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true, logging: true, allowTaint: true },
-          jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-        })
-        .from(bodyEl)
-        .save()
-        .then(() => restore(saved, filters))
-        .catch(err => {
-          restore(saved, filters);
-          console.error("Error al exportar PDF:", err);
-          alert("Error al generar PDF: " + err.message + ". Intenta con CSV.");
-        });
-    }, 500);
-  }
-
-  function restore(saved, filters){
-    saved.forEach(r => {
-      r.canvas.style.display = "";
-      if (r.img.parentNode) r.img.parentNode.removeChild(r.img);
-    });
-    if (filters) filters.style.display = "";
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }, 120000);
   }
 
   document.addEventListener("DOMContentLoaded", () => {
