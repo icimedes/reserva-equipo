@@ -1,7 +1,9 @@
 (function(){
   const loginCard = document.getElementById("loginCard");
-  const adminPanel = document.getElementById("adminPanel");
+  const adminContent = document.getElementById("adminContent");
+  const reservasPanel = document.getElementById("reservasPanel");
   const equiposPanel = document.getElementById("equiposPanel");
+  const reportsPanel = document.getElementById("reportsPanel");
   const loginForm = document.getElementById("loginForm");
   const adminToken = document.getElementById("adminToken");
   const loginStatus = document.getElementById("loginStatus");
@@ -15,6 +17,7 @@
   const btnCancelarEquipo = document.getElementById("btnCancelarEquipo");
   const equipoStatus = document.getElementById("equipoStatus");
   const ADMIN_TOKEN_KEY = "icimedes_admin_token";
+  let currentToken = null;
 
   let editingEquipoId = null;
   let editingEquipoActivo = true;
@@ -225,14 +228,34 @@
 
   function showLogin(){
     loginCard.classList.remove("hidden");
-    adminPanel.classList.add("hidden");
-    equiposPanel.classList.add("hidden");
+    adminContent.classList.add("hidden");
   }
 
-  function showPanel(){
+  function showPanel(token){
+    currentToken = token;
     loginCard.classList.add("hidden");
-    adminPanel.classList.remove("hidden");
-    equiposPanel.classList.remove("hidden");
+    adminContent.classList.remove("hidden");
+    switchTab("reservas");
+  }
+
+  function switchTab(tabId){
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    const panel = document.getElementById(tabId + "Panel");
+    if (panel) panel.classList.remove("hidden");
+    const btn = document.querySelector(`[data-tab="${tabId}"]`);
+    if (btn) btn.classList.add("active");
+
+    if (tabId === "reservas"){
+      loadReservas();
+      loadEquipos();
+    }
+    if (tabId === "equipos"){
+      loadEquipos();
+    }
+    if (tabId === "reportes" && window.initReports){
+      window.initReports(currentToken);
+    }
   }
 
   function resetEquipoForm(){
@@ -275,8 +298,7 @@
       }
 
       localStorage.setItem(ADMIN_TOKEN_KEY, token);
-      showPanel();
-      await Promise.all([loadReservas(), loadEquipos()]);
+      showPanel(token);
     } finally{
       btnSendLink.disabled = false;
     }
@@ -415,6 +437,14 @@
     }
   });
 
+  document.addEventListener("click", (event) => {
+    const tabBtn = event.target.closest(".tab-btn");
+    if (tabBtn){
+      const tab = tabBtn.dataset.tab;
+      if (tab) switchTab(tab);
+    }
+  });
+
   btnLogout.addEventListener("click", onLogout);
   loginForm.addEventListener("submit", onLogin);
   equipoForm.addEventListener("submit", onEquipoSubmit);
@@ -429,7 +459,6 @@
       showLogin();
       return;
     }
-    showPanel();
-    Promise.all([loadReservas(), loadEquipos()]);
+    showPanel(token);
   });
 })();

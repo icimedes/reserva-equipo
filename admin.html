@@ -35,8 +35,8 @@
     <div class="hero">
       <div>
         <span class="badge">Administracion</span>
-        <h2>Reservas pendientes y aprobadas</h2>
-        <p>Gestiona el estado de las solicitudes en tiempo real.</p>
+        <h2>Panel de administracion</h2>
+        <p>Gestion de solicitudes, equipos y reportes.</p>
       </div>
     </div>
 
@@ -63,53 +63,119 @@
       </div>
     </section>
 
-    <section id="adminPanel" class="card hidden">
-      <div class="hd">
-        <h2 class="title">Solicitudes</h2>
-      </div>
-      <div class="bd">
-        <div class="legend" style="margin-bottom:12px;">
-          <span><i style="background:#0f7b3a;"></i> Aprobada</span>
-          <span><i style="background:#b88400;"></i> Pendiente</span>
-          <span><i style="background:#b42318;"></i> Rechazada</span>
-        </div>
-        <div id="adminCards" class="admin-cards"></div>
-      </div>
-    </section>
+    <div id="adminContent" class="hidden">
+      <nav class="tabs" aria-label="Secciones">
+        <button class="tab-btn active" data-tab="reservas">Solicitudes</button>
+        <button class="tab-btn" data-tab="equipos">Equipos</button>
+        <button class="tab-btn" data-tab="reportes">Reportes</button>
+      </nav>
 
-    <section id="equiposPanel" class="card hidden" style="margin-top:18px;">
-      <div class="hd">
-        <h2 class="title">Equipos</h2>
-      </div>
-      <div class="bd">
-        <form id="equipoForm" novalidate>
-          <div class="form-grid" style="grid-template-columns:1fr;">
+      <section id="reservasPanel" class="card tab-panel">
+        <div class="hd">
+          <h2 class="title">Solicitudes</h2>
+        </div>
+        <div class="bd">
+          <div class="legend" style="margin-bottom:12px;">
+            <span><i style="background:#0f7b3a;"></i> Aprobada</span>
+            <span><i style="background:#b88400;"></i> Pendiente</span>
+            <span><i style="background:#b42318;"></i> Rechazada</span>
+          </div>
+          <div id="adminCards" class="admin-cards"></div>
+        </div>
+      </section>
+
+      <section id="equiposPanel" class="card tab-panel hidden">
+        <div class="hd">
+          <h2 class="title">Equipos</h2>
+        </div>
+        <div class="bd">
+          <form id="equipoForm" novalidate>
+            <div class="form-grid" style="grid-template-columns:1fr;">
+              <div>
+                <label for="equipoNombre">Nombre del equipo</label>
+                <input id="equipoNombre" class="input" type="text" placeholder="Ej. Camilla A" />
+                <p class="error-text" data-error-for="equipoNombre"></p>
+              </div>
+            </div>
+            <div class="row">
+              <button id="btnGuardarEquipo" class="btn" type="submit">Guardar equipo</button>
+              <button id="btnCancelarEquipo" class="btn secondary hidden" type="button">Cancelar</button>
+              <span id="equipoStatus" class="notice hidden" aria-live="polite"></span>
+            </div>
+          </form>
+
+          <hr style="margin:18px 0;border:none;border-top:1px solid var(--line);" />
+
+          <div class="legend" style="margin-bottom:12px;">
+            <span><i style="background:#0f7b3a;"></i> Activo</span>
+            <span><i style="background:#999;"></i> Inactivo</span>
+          </div>
+          <div id="equiposCards" class="admin-cards"></div>
+        </div>
+      </section>
+
+      <section id="reportsPanel" class="card tab-panel hidden">
+        <div class="hd">
+          <h2 class="title">Reportes</h2>
+        </div>
+        <div class="bd">
+          <div class="reports-filters">
             <div>
-              <label for="equipoNombre">Nombre del equipo</label>
-              <input id="equipoNombre" class="input" type="text" placeholder="Ej. Camilla A" />
-              <p class="error-text" data-error-for="equipoNombre"></p>
+              <label for="reportDesde">Desde</label>
+              <input id="reportDesde" class="input" type="date" />
+            </div>
+            <div>
+              <label for="reportHasta">Hasta</label>
+              <input id="reportHasta" class="input" type="date" />
+            </div>
+            <div class="reports-filter-actions">
+              <button id="btnFiltrarReportes" class="btn" type="button">Filtrar</button>
+              <button id="btnExportCSV" class="btn secondary" type="button">Exportar CSV</button>
+              <button id="btnExportPDF" class="btn secondary" type="button">Exportar PDF</button>
             </div>
           </div>
-          <div class="row">
-            <button id="btnGuardarEquipo" class="btn" type="submit">Guardar equipo</button>
-            <button id="btnCancelarEquipo" class="btn secondary hidden" type="button">Cancelar</button>
-            <span id="equipoStatus" class="notice hidden" aria-live="polite"></span>
+
+          <div class="kpi-grid" id="kpiGrid">
+            <div class="kpi-card"><span class="kpi-num" id="kpiTotal">0</span><span class="kpi-label">Total</span></div>
+            <div class="kpi-card approved"><span class="kpi-num" id="kpiAprobadas">0</span><span class="kpi-label">Aprobadas</span></div>
+            <div class="kpi-card pending"><span class="kpi-num" id="kpiPendientes">0</span><span class="kpi-label">Pendientes</span></div>
+            <div class="kpi-card rejected"><span class="kpi-num" id="kpiRechazadas">0</span><span class="kpi-label">Rechazadas</span></div>
           </div>
-        </form>
 
-        <hr style="margin:18px 0;border:none;border-top:1px solid var(--line);" />
+          <div class="chart-grid">
+            <div class="chart-box">
+              <h3>Reservas por hora del dia</h3>
+              <div class="chart-wrap"><canvas id="chartHourly"></canvas></div>
+            </div>
+            <div class="chart-box">
+              <h3>Reservas por dia de la semana</h3>
+              <div class="chart-wrap"><canvas id="chartWeekly"></canvas></div>
+            </div>
+          </div>
 
-        <div class="legend" style="margin-bottom:12px;">
-          <span><i style="background:#0f7b3a;"></i> Activo</span>
-          <span><i style="background:#999;"></i> Inactivo</span>
+          <div id="reportsTableWrap" style="overflow-x:auto;margin-top:18px;">
+            <table id="reportsTable" class="reports-table">
+              <thead><tr>
+                <th>Equipo</th>
+                <th>Solicitante</th>
+                <th>Proyecto</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Estado</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
-        <div id="equiposCards" class="admin-cards"></div>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="assets/js/supabase.js"></script>
   <script src="assets/js/admin.js"></script>
+  <script src="assets/js/reports.js"></script>
 </body>
 </html>
