@@ -442,6 +442,7 @@ label{
   .kpi-card{ padding: 10px 12px; }
   .chart-box{ padding: 10px; }
   .chart-wrap{ height: 160px; }
+  .reports-filter-actions .btn{ font-size: 12px; padding: 8px 10px; }
 }
 .modal-header{
   display:flex;
@@ -671,11 +672,10 @@ label{
   position: relative;
   height: 220px;
   width: 100%;
-  overflow: hidden;
 }
 .chart-wrap canvas{
-  max-width: 100%;
-  height: auto !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .reports-table{
@@ -721,6 +721,6 @@ label{
   .kpi-num{ font-size: 22px; }
   .chart-wrap{ height: 180px; }
   .reports-filters > div{ min-width: 100%; }
-  .reports-filter-actions{ width: 100%; flex-wrap: wrap; }
-  .reports-filter-actions .btn{ flex: 1; min-width: 80px; }
+  .reports-filter-actions{ width: 100%; flex-direction: column; gap: 6px; }
+  .reports-filter-actions .btn{ width: 100%; justify-content: center; }
 }
