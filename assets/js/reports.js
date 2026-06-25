@@ -265,7 +265,7 @@
   }
 
   function exportPDF(){
-    const element = getEl("reportsPanel").querySelector(".bd");
+    const element = getEl("reportesPanel").querySelector(".bd");
     if (!element) return;
     html2pdf().set({
       margin: [10, 10, 10, 10],
