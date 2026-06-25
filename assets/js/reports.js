@@ -297,123 +297,122 @@
       return;
     }
 
-    const desdeLabel = desde ? formatFecha(desde) : "—";
-    const hastaLabel = hasta ? formatFecha(hasta) : "—";
+    if (typeof window.jspdf === "undefined" || typeof window.jspdf.jsPDF === "undefined"){
+      alert("Libreria PDF no cargada. Recarga la pagina.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pw = doc.internal.pageSize.getWidth();
+    const left = 14;
+
     const total = filtered.length;
     const aprobadas = countByStatus(filtered, "aprobada");
     const pendientes = countByStatus(filtered, "pendiente");
     const rechazadas = countByStatus(filtered, "rechazada");
-
-    const hourlyCanvas = getEl("chartHourly");
-    const weeklyCanvas = getEl("chartWeekly");
-    const hourlyImg = hourlyCanvas ? hourlyCanvas.toDataURL("image/png") : "";
-    const weeklyImg = weeklyCanvas ? weeklyCanvas.toDataURL("image/png") : "";
+    const desdeLabel = desde ? formatFecha(desde) : "—";
+    const hastaLabel = hasta ? formatFecha(hasta) : "—";
 
     const now = new Date();
     const fechaGen = now.toLocaleDateString("es-HN", { day:"2-digit", month:"2-digit", year:"numeric" });
     const horaGen = now.toLocaleTimeString("es-HN", { hour:"2-digit", minute:"2-digit" });
 
-    const rows = filtered.map(r =>
-      `<tr>
-        <td>${r.equipo_nombre || "-"}</td>
-        <td>${r.nombre_completo || "-"}</td>
-        <td>${r.nombre_proyecto || "-"}</td>
-        <td>${formatFecha(r.fecha_reserva)}</td>
-        <td>${formatHora(r.hora_inicio)} - ${formatHora(r.hora_fin)}</td>
-        <td><span class="st-${r.estado}">${r.estado}</span></td>
-      </tr>`
-    ).join("");
+    // === HEADER ===
+    doc.setFontSize(20);
+    doc.setTextColor(0, 42, 92);
+    doc.text("ICIMEDES", left, 18);
+    doc.setFontSize(8);
+    doc.setTextColor(91, 102, 122);
+    doc.text("Instituto de Investigacion en Ciencias Medicas y Derecho a la Salud", left, 24);
+    doc.setFontSize(7);
+    doc.text("Generado: " + fechaGen + " " + horaGen, pw - left, 12, { align: "right" });
+    doc.setDrawColor(0, 42, 92);
+    doc.setLineWidth(0.5);
+    doc.line(left, 27, pw - left, 27);
 
-    const html = `<!doctype html>
-<html lang="es">
-<head><meta charset="utf-8">
-<style>
-  @page{size:A4 landscape;margin:8mm;}
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Manrope','Segoe UI',Arial,sans-serif;color:#0b1220;padding:20px;width:1123px;margin:0 auto;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
-  h1,h2{font-family:'DM Serif Display','Times New Roman',serif;}
-  .header{border-bottom:3px solid #002a5c;padding-bottom:12px;margin-bottom:18px;}
-  .header h1{font-size:22px;color:#002a5c;margin:0;}
-  .header .sub{font-size:12px;color:#5b667a;margin:4px 0 0 0;}
-  .header h2{font-size:16px;margin:14px 0 4px 0;}
-  .header .periodo{font-size:12px;color:#5b667a;}
-  .header .gen{font-size:11px;color:#5b667a;text-align:right;margin-bottom:8px;}
-  .kpis{display:flex;gap:10px;margin-bottom:18px;}
-  .kpi{flex:1;background:#fff;border:1px solid #e4e9f4;border-radius:8px;padding:12px;text-align:center;}
-  .kpi .num{font-size:24px;font-weight:800;}
-  .kpi .lbl{font-size:10px;color:#5b667a;font-weight:700;margin-top:2px;}
-  .kpi-apr{border-left:4px solid #0f7b3a;}.kpi-apr .num{color:#0f7b3a;}
-  .kpi-pen{border-left:4px solid #b88400;}.kpi-pen .num{color:#b88400;}
-  .kpi-rec{border-left:4px solid #b42318;}.kpi-rec .num{color:#b42318;}
-  .charts{display:flex;gap:12px;margin-bottom:14px;}
-  .chart-box{flex:1;background:#fff;border:1px solid #e4e9f4;border-radius:8px;padding:10px;}
-  .chart-box h3{font-size:12px;font-weight:700;margin:0 0 8px 0;}
-  .chart-box img{width:100%;display:block;}
-  table{width:100%;border-collapse:collapse;font-size:10px;margin-top:8px;}
-  th{text-align:left;padding:6px 8px;background:#f0f3fa;border-bottom:2px solid #e4e9f4;font-weight:700;color:#002a5c;font-size:10px;}
-  td{padding:5px 8px;border-bottom:1px solid #e4e9f4;font-size:10px;}
-  tr:nth-child(even) td{background:#f8f9fc;}
-  .st-aprobada{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(15,123,58,.15);color:#0f7b3a;}
-  .st-pendiente{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(184,132,0,.15);color:#7b5a00;}
-  .st-rechazada{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(180,35,24,.15);color:#b42318;}
-</style></head>
-<body>
-  <div class="header">
-    <div class="gen">Generado: ${fechaGen} ${horaGen}</div>
-    <h1>ICIMEDES</h1>
-    <p class="sub">Instituto de Investigacion en Ciencias Medicas y Derecho a la Salud</p>
-    <h2>Reporte de Reservas</h2>
-    <p class="periodo">Periodo: ${desdeLabel} al ${hastaLabel} &middot; ${total} reservas</p>
-  </div>
+    doc.setFontSize(14);
+    doc.setTextColor(11, 18, 32);
+    doc.text("Reporte de Reservas", left, 33);
+    doc.setFontSize(8);
+    doc.setTextColor(91, 102, 122);
+    doc.text("Periodo: " + desdeLabel + " al " + hastaLabel + " · " + total + " reservas", left, 38);
 
-  <div class="kpis">
-    <div class="kpi"><div class="num">${total}</div><div class="lbl">TOTAL</div></div>
-    <div class="kpi kpi-apr"><div class="num">${aprobadas}</div><div class="lbl">APROBADAS</div></div>
-    <div class="kpi kpi-pen"><div class="num">${pendientes}</div><div class="lbl">PENDIENTES</div></div>
-    <div class="kpi kpi-rec"><div class="num">${rechazadas}</div><div class="lbl">RECHAZADAS</div></div>
-  </div>
+    // === KPIs ===
+    const kpis = [
+      { label: "TOTAL", value: total, clr: "#002a5c" },
+      { label: "APROBADAS", value: aprobadas, clr: "#0f7b3a" },
+      { label: "PENDIENTES", value: pendientes, clr: "#b88400" },
+      { label: "RECHAZADAS", value: rechazadas, clr: "#b42318" }
+    ];
+    const kw = (pw - 28 - 12) / 4;
+    const ky = 43;
+    const kh = 17;
 
-  <div class="charts">
-    <div class="chart-box"><h3>Reservas por hora del dia</h3>${hourlyImg ? '<img src="'+hourlyImg+'" />' : '<p>Sin datos</p>'}</div>
-    <div class="chart-box"><h3>Reservas por dia de la semana</h3>${weeklyImg ? '<img src="'+weeklyImg+'" />' : '<p>Sin datos</p>'}</div>
-  </div>
+    kpis.forEach((k, i) => {
+      const x = left + i * (kw + 4);
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(228, 233, 244);
+      doc.roundedRect(x, ky, kw, kh, 1.5, 1.5, "FD");
+      const r = parseInt(k.clr.slice(1,3), 16);
+      const g = parseInt(k.clr.slice(3,5), 16);
+      const b = parseInt(k.clr.slice(5,7), 16);
+      doc.setFillColor(r, g, b);
+      doc.rect(x + 1, ky + 2, 0.6, kh - 4, "F");
+      doc.setFontSize(13);
+      doc.setTextColor(r, g, b);
+      doc.text(String(k.value), x + kw / 2, ky + 9, { align: "center" });
+      doc.setFontSize(6);
+      doc.setTextColor(91, 102, 122);
+      doc.text(k.label, x + kw / 2, ky + 14, { align: "center" });
+    });
 
-  <table><thead><tr>
-    <th>Equipo</th><th>Solicitante</th><th>Proyecto</th><th>Fecha</th><th>Hora</th><th>Estado</th>
-  </tr></thead><tbody>${rows}</tbody></table>
-</body></html>`;
+    // === CHARTS ===
+    const hourlyCanvas = getEl("chartHourly");
+    const weeklyCanvas = getEl("chartWeekly");
+    const hourlyImg = hourlyCanvas ? hourlyCanvas.toDataURL("image/png") : null;
+    const weeklyImg = weeklyCanvas ? weeklyCanvas.toDataURL("image/png") : null;
 
-    const iframe = document.createElement("iframe");
-    iframe.style.cssText = "position:fixed;top:0;left:0;width:1123px;height:100vh;z-index:99999;border:none;background:#fff;transform:scale(0.3);transform-origin:top left;";
-    document.body.appendChild(iframe);
+    const cy = ky + kh + 6;
+    const cw = (pw - 42) / 2;
+    const ch = 42;
 
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-    iframeDoc.open();
-    iframeDoc.write(html);
-    iframeDoc.close();
+    if (hourlyImg) {
+      doc.setFontSize(9);
+      doc.setTextColor(11, 18, 32);
+      doc.text("Reservas por hora del dia", left, cy);
+      doc.addImage(hourlyImg, "PNG", left, cy + 3, cw, ch);
+    }
+    if (weeklyImg) {
+      doc.setFontSize(9);
+      doc.setTextColor(11, 18, 32);
+      doc.text("Reservas por dia de la semana", left + cw + 14, cy);
+      doc.addImage(weeklyImg, "PNG", left + cw + 14, cy + 3, cw, ch);
+    }
 
-    iframe.onload = function(){
-      setTimeout(() => {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 1000);
-      }, 300);
-    };
+    // === TABLE ===
+    const trows = filtered.map(r => [
+      r.equipo_nombre || "-",
+      r.nombre_completo || "-",
+      r.nombre_proyecto || "-",
+      formatFecha(r.fecha_reserva),
+      formatHora(r.hora_inicio) + " - " + formatHora(r.hora_fin),
+      r.estado || "-"
+    ]);
 
-    iframe.contentWindow.onfocus = function(){
-      if (!iframe._printed){
-        iframe._printed = true;
-      }
-    };
+    doc.autoTable({
+      head: [["Equipo", "Solicitante", "Proyecto", "Fecha", "Hora", "Estado"]],
+      body: trows,
+      startY: cy + ch + 8,
+      theme: "grid",
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [0, 42, 92], fontSize: 7, halign: "left", textColor: [255, 255, 255] },
+      bodyStyles: { textColor: [11, 18, 32] },
+      alternateRowStyles: { fillColor: [248, 249, 252] },
+      margin: { left: left, right: left }
+    });
 
-    window.addEventListener("afterprint", function h(){
-      window.removeEventListener("afterprint", h);
-      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-    }, { once: true });
-
-    setTimeout(() => {
-      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-    }, 120000);
+    doc.save("reporte_reservas_" + (desde || "todo") + "_" + (hasta || "todo") + ".pdf");
   }
 
   document.addEventListener("DOMContentLoaded", () => {
