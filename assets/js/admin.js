@@ -79,39 +79,61 @@
     card.className = `admin-card ${estadoClass(row.estado)}`;
     card.dataset.id = row.id;
 
-    card.innerHTML = `
-      <div class="admin-card-header">
-        <div>
-          <h3>${row.equipo_nombre || "Equipo"}</h3>
-          <p>${row.nombre_completo || ""}</p>
-        </div>
-        <span class="admin-tag">${row.estado}</span>
-      </div>
-      <div class="admin-card-body">
-        <div>
-          <span>Proyecto</span>
-          <p>${row.nombre_proyecto || "-"}</p>
-        </div>
-        <div>
-          <span>Registro</span>
-          <p>${row.num_registro_proyecto || "-"}</p>
-        </div>
-        <div>
-          <span>Fecha</span>
-          <p>${formatFecha(row.fecha_reserva)}</p>
-        </div>
-        <div>
-          <span>Hora</span>
-          <p>${formatHora(row.hora_inicio)} - ${formatHora(row.hora_fin)}</p>
-        </div>
-      </div>
-      <div class="admin-card-actions">
-        <button class="btn secondary" data-action="eliminar">Eliminar</button>
-        <button class="btn secondary" data-action="rechazar">Rechazar</button>
-        <button class="btn" data-action="aprobar">Aprobar</button>
-      </div>
-    `;
+    const header = document.createElement("div");
+    header.className = "admin-card-header";
+    const headerDiv = document.createElement("div");
+    const h3 = document.createElement("h3");
+    h3.textContent = row.equipo_nombre || "Equipo";
+    const pName = document.createElement("p");
+    pName.textContent = row.nombre_completo || "";
+    headerDiv.appendChild(h3);
+    headerDiv.appendChild(pName);
+    const tag = document.createElement("span");
+    tag.className = "admin-tag";
+    tag.textContent = row.estado;
+    header.appendChild(headerDiv);
+    header.appendChild(tag);
 
+    const body = document.createElement("div");
+    body.className = "admin-card-body";
+    const bodyFields = [
+      { label: "Proyecto", value: row.nombre_proyecto || "-" },
+      { label: "Registro", value: row.num_registro_proyecto || "-" },
+      { label: "Fecha", value: formatFecha(row.fecha_reserva) },
+      { label: "Hora", value: formatHora(row.hora_inicio) + " - " + formatHora(row.hora_fin) }
+    ];
+    bodyFields.forEach(f => {
+      const div = document.createElement("div");
+      const span = document.createElement("span");
+      span.textContent = f.label;
+      const p = document.createElement("p");
+      p.textContent = f.value;
+      div.appendChild(span);
+      div.appendChild(p);
+      body.appendChild(div);
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "admin-card-actions";
+    const btnEliminar = document.createElement("button");
+    btnEliminar.className = "btn secondary";
+    btnEliminar.setAttribute("data-action", "eliminar");
+    btnEliminar.textContent = "Eliminar";
+    const btnRechazar = document.createElement("button");
+    btnRechazar.className = "btn secondary";
+    btnRechazar.setAttribute("data-action", "rechazar");
+    btnRechazar.textContent = "Rechazar";
+    const btnAprobar = document.createElement("button");
+    btnAprobar.className = "btn";
+    btnAprobar.setAttribute("data-action", "aprobar");
+    btnAprobar.textContent = "Aprobar";
+    actions.appendChild(btnEliminar);
+    actions.appendChild(btnRechazar);
+    actions.appendChild(btnAprobar);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(actions);
     return card;
   }
 
@@ -122,30 +144,60 @@
     card.dataset.nombre = row.nombre;
     card.dataset.activo = row.activo ? "1" : "0";
 
-    card.innerHTML = `
-      <div class="admin-card-header">
-        <div>
-          <h3>${row.nombre}</h3>
-        </div>
-        <span class="admin-tag">${row.activo ? "Activo" : "Inactivo"}</span>
-      </div>
-      <div class="admin-card-body">
-        <div>
-          <span>Reservas</span>
-          <p>${row.total_reservas}</p>
-        </div>
-        <div>
-          <span>Estado</span>
-          <p>${row.activo ? "Disponible" : "Inactivo"}</p>
-        </div>
-      </div>
-      <div class="admin-card-actions">
-        <button class="btn secondary" data-action="editar">Editar</button>
-        <button class="btn secondary" data-action="toggle">${row.activo ? "Desactivar" : "Activar"}</button>
-        <button class="btn secondary" data-action="eliminar" style="color:var(--danger);border-color:rgba(180,35,24,.35);">Eliminar</button>
-      </div>
-    `;
+    const header = document.createElement("div");
+    header.className = "admin-card-header";
+    const headerDiv = document.createElement("div");
+    const h3 = document.createElement("h3");
+    h3.textContent = row.nombre;
+    headerDiv.appendChild(h3);
+    const tag = document.createElement("span");
+    tag.className = "admin-tag";
+    tag.textContent = row.activo ? "Activo" : "Inactivo";
+    header.appendChild(headerDiv);
+    header.appendChild(tag);
 
+    const body = document.createElement("div");
+    body.className = "admin-card-body";
+    const divReservas = document.createElement("div");
+    const spanReservas = document.createElement("span");
+    spanReservas.textContent = "Reservas";
+    const pReservas = document.createElement("p");
+    pReservas.textContent = row.total_reservas;
+    divReservas.appendChild(spanReservas);
+    divReservas.appendChild(pReservas);
+    const divEstado = document.createElement("div");
+    const spanEstado = document.createElement("span");
+    spanEstado.textContent = "Estado";
+    const pEstado = document.createElement("p");
+    pEstado.textContent = row.activo ? "Disponible" : "Inactivo";
+    divEstado.appendChild(spanEstado);
+    divEstado.appendChild(pEstado);
+    body.appendChild(divReservas);
+    body.appendChild(divEstado);
+
+    const actions = document.createElement("div");
+    actions.className = "admin-card-actions";
+    const btnEditar = document.createElement("button");
+    btnEditar.className = "btn secondary";
+    btnEditar.setAttribute("data-action", "editar");
+    btnEditar.textContent = "Editar";
+    const btnToggle = document.createElement("button");
+    btnToggle.className = "btn secondary";
+    btnToggle.setAttribute("data-action", "toggle");
+    btnToggle.textContent = row.activo ? "Desactivar" : "Activar";
+    const btnEliminar = document.createElement("button");
+    btnEliminar.className = "btn secondary";
+    btnEliminar.setAttribute("data-action", "eliminar");
+    btnEliminar.style.color = "var(--danger)";
+    btnEliminar.style.borderColor = "rgba(180,35,24,.35)";
+    btnEliminar.textContent = "Eliminar";
+    actions.appendChild(btnEditar);
+    actions.appendChild(btnToggle);
+    actions.appendChild(btnEliminar);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(actions);
     return card;
   }
 

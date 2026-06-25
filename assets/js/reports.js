@@ -184,17 +184,38 @@
 
   function renderTable(data){
     const tbody = document.querySelector("#reportsTable tbody");
-    tbody.innerHTML = "";
+    tbody.textContent = "";
     data.forEach(r => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.equipo_nombre || "-"}</td>
-        <td>${r.nombre_completo || "-"}</td>
-        <td>${r.nombre_proyecto || "-"}</td>
-        <td>${formatFecha(r.fecha_reserva)}</td>
-        <td>${formatHora(r.hora_inicio)} - ${formatHora(r.hora_fin)}</td>
-        <td><span class="tag-estado ${r.estado}">${r.estado}</span></td>
-      `;
+
+      const tdEquipo = document.createElement("td");
+      tdEquipo.textContent = r.equipo_nombre || "-";
+
+      const tdNombre = document.createElement("td");
+      tdNombre.textContent = r.nombre_completo || "-";
+
+      const tdProyecto = document.createElement("td");
+      tdProyecto.textContent = r.nombre_proyecto || "-";
+
+      const tdFecha = document.createElement("td");
+      tdFecha.textContent = formatFecha(r.fecha_reserva);
+
+      const tdHora = document.createElement("td");
+      tdHora.textContent = formatHora(r.hora_inicio) + " - " + formatHora(r.hora_fin);
+
+      const tdEstado = document.createElement("td");
+      const spanEstado = document.createElement("span");
+      spanEstado.className = "tag-estado " + r.estado;
+      spanEstado.textContent = r.estado;
+      tdEstado.appendChild(spanEstado);
+
+      tr.appendChild(tdEquipo);
+      tr.appendChild(tdNombre);
+      tr.appendChild(tdProyecto);
+      tr.appendChild(tdFecha);
+      tr.appendChild(tdHora);
+      tr.appendChild(tdEstado);
+
       tbody.appendChild(tr);
     });
   }

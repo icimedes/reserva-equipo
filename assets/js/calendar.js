@@ -30,14 +30,18 @@
 
   function openModal(detail){
     if (!eventModal || !eventModalBody) return;
-    eventModalBody.innerHTML = detail.map((item) => {
-      return `
-        <div class="modal-row">
-          <span>${item.label}</span>
-          <p>${item.value || "-"}</p>
-        </div>
-      `;
-    }).join("");
+    eventModalBody.textContent = "";
+    detail.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "modal-row";
+      const spanEl = document.createElement("span");
+      spanEl.textContent = item.label;
+      const pEl = document.createElement("p");
+      pEl.textContent = item.value || "-";
+      row.appendChild(spanEl);
+      row.appendChild(pEl);
+      eventModalBody.appendChild(row);
+    });
     eventModal.classList.remove("hidden");
   }
 
