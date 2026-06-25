@@ -285,103 +285,6 @@
     URL.revokeObjectURL(link.href);
   }
 
-  function buildReportHTML(data, desdeLabel, hastaLabel){
-    const total = data.length;
-    const aprobadas = countByStatus(data, "aprobada");
-    const pendientes = countByStatus(data, "pendiente");
-    const rechazadas = countByStatus(data, "rechazada");
-
-    const hourlyCanvas = getEl("chartHourly");
-    const weeklyCanvas = getEl("chartWeekly");
-    const hourlyImg = hourlyCanvas ? '<img src="' + hourlyCanvas.toDataURL("image/png") + '" style="width:100%;" />' : "";
-    const weeklyImg = weeklyCanvas ? '<img src="' + weeklyCanvas.toDataURL("image/png") + '" style="width:100%;" />' : "";
-
-    const rows = data.map(r => `
-      <tr>
-        <td>${r.equipo_nombre || "-"}</td>
-        <td>${r.nombre_completo || "-"}</td>
-        <td>${r.nombre_proyecto || "-"}</td>
-        <td>${formatFecha(r.fecha_reserva)}</td>
-        <td>${formatHora(r.hora_inicio)} - ${formatHora(r.hora_fin)}</td>
-        <td><span class="st-${r.estado}">${r.estado}</span></td>
-      </tr>
-    `).join("");
-
-    const now = new Date();
-    const fechaGen = now.toLocaleDateString("es-HN", { day: "2-digit", month: "2-digit", year: "numeric" });
-    const horaGen = now.toLocaleTimeString("es-HN", { hour: "2-digit", minute: "2-digit" });
-
-    return `
-<div style="font-family:'Manrope','Segoe UI',Arial,sans-serif;color:#0b1220;max-width:100%;padding:10px;">
-
-  <div style="border-bottom:3px solid #002a5c;padding-bottom:12px;margin-bottom:18px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <h1 style="font-family:'DM Serif Display',serif;font-size:22px;margin:0;color:#002a5c;">ICIMEDES</h1>
-        <p style="margin:4px 0 0 0;font-size:12px;color:#5b667a;">Instituto de Investigacion en Ciencias Medicas y Derecho a la Salud</p>
-      </div>
-      <div style="text-align:right;font-size:11px;color:#5b667a;">
-        <p style="margin:0;">Generado: ${fechaGen} ${horaGen}</p>
-      </div>
-    </div>
-    <h2 style="font-family:'DM Serif Display',serif;font-size:16px;margin:14px 0 4px 0;color:#0b1220;">Reporte de Reservas</h2>
-    <p style="margin:0;font-size:12px;color:#5b667a;">Periodo: ${desdeLabel || "—"} al ${hastaLabel || "—"} · ${total} reservas</p>
-  </div>
-
-  <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
-    <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e4e9f4;border-radius:8px;padding:12px;text-align:center;">
-      <div style="font-size:24px;font-weight:800;color:#0b1220;">${total}</div>
-      <div style="font-size:10px;color:#5b667a;font-weight:700;margin-top:2px;">TOTAL</div>
-    </div>
-    <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e4e9f4;border-left:4px solid #0f7b3a;border-radius:8px;padding:12px;text-align:center;">
-      <div style="font-size:24px;font-weight:800;color:#0f7b3a;">${aprobadas}</div>
-      <div style="font-size:10px;color:#5b667a;font-weight:700;margin-top:2px;">APROBADAS</div>
-    </div>
-    <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e4e9f4;border-left:4px solid #b88400;border-radius:8px;padding:12px;text-align:center;">
-      <div style="font-size:24px;font-weight:800;color:#b88400;">${pendientes}</div>
-      <div style="font-size:10px;color:#5b667a;font-weight:700;margin-top:2px;">PENDIENTES</div>
-    </div>
-    <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e4e9f4;border-left:4px solid #b42318;border-radius:8px;padding:12px;text-align:center;">
-      <div style="font-size:24px;font-weight:800;color:#b42318;">${rechazadas}</div>
-      <div style="font-size:10px;color:#5b667a;font-weight:700;margin-top:2px;">RECHAZADAS</div>
-    </div>
-  </div>
-
-  <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-    <div style="flex:1;min-width:260px;background:#fff;border:1px solid #e4e9f4;border-radius:8px;padding:10px;">
-      <h3 style="font-size:12px;font-weight:700;margin:0 0 8px 0;color:#0b1220;">Reservas por hora del dia</h3>
-      ${hourlyImg}
-    </div>
-    <div style="flex:1;min-width:260px;background:#fff;border:1px solid #e4e9f4;border-radius:8px;padding:10px;">
-      <h3 style="font-size:12px;font-weight:700;margin:0 0 8px 0;color:#0b1220;">Reservas por dia de la semana</h3>
-      ${weeklyImg}
-    </div>
-  </div>
-
-  <table style="width:100%;border-collapse:collapse;font-size:10px;">
-    <thead>
-      <tr style="background:#f0f3fa;">
-        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e4e9f4;font-weight:700;color:#002a5c;">Equipo</th>
-        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e4e9f4;font-weight:700;color:#002a5c;">Solicitante</th>
-        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e4e9f4;font-weight:700;color:#002a5c;">Proyecto</th>
-        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e4e9f4;font-weight:700;color:#002a5c;">Fecha</th>
-        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e4e9f4;font-weight:700;color:#002a5c;">Hora</th>
-        <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #e4e9f4;font-weight:700;color:#002a5c;">Estado</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-
-  <style>
-    .st-aprobada{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(15,123,58,.12);color:#0f7b3a;}
-    .st-pendiente{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(184,132,0,.12);color:#7b5a00;}
-    .st-rechazada{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(180,35,24,.12);color:#b42318;}
-    table tbody tr:nth-child(even){background:#f8f9fc;}
-  </style>
-
-</div>`;
-  }
-
   function exportPDF(){
     if (typeof html2pdf === "undefined"){
       alert("Libreria PDF no cargada. Recarga la pagina.");
@@ -397,36 +300,50 @@
       return;
     }
 
-    const desdeLabel = desde ? formatFecha(desde) : "—";
-    const hastaLabel = hasta ? formatFecha(hasta) : "—";
-    const reportHTML = buildReportHTML(filtered, desdeLabel, hastaLabel);
+    const panel = getEl("reportesPanel");
+    const bodyEl = panel.querySelector(".bd");
+    const filters = panel.querySelector(".reports-filters");
 
-    const overlay = document.createElement("div");
-    overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100vh;z-index:99999;background:#fff;overflow:auto;padding:0;";
-    overlay.innerHTML = `<div style="max-width:800px;margin:0 auto;padding:20px;">${reportHTML}</div>`;
-    document.body.appendChild(overlay);
+    if (filters) filters.style.display = "none";
 
-    requestAnimationFrame(() => {
-      html2pdf()
-        .set({
-          margin: [8, 8, 8, 8],
-          filename: `reporte_reservas_${desde || "todo"}_${hasta || "todo"}.pdf`,
-          image: { type: "jpeg", quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true, logging: false },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-        })
-        .from(overlay)
-        .save()
-        .then(() => {
-          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        })
-        .catch(err => {
-          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-          console.error("Error al exportar PDF:", err);
-          alert("Error al generar PDF. Intenta con CSV.");
-        });
+    const canvases = bodyEl.querySelectorAll("canvas");
+    const saved = [];
+    canvases.forEach(c => {
+      const img = document.createElement("img");
+      img.src = c.toDataURL("image/png");
+      img.style.width = c.offsetWidth + "px";
+      img.style.height = c.offsetHeight + "px";
+      img.style.display = "block";
+      c.parentNode.insertBefore(img, c);
+      c.style.display = "none";
+      saved.push({ canvas: c, img: img });
     });
+
+    html2pdf()
+      .set({
+        margin: [8, 8, 8, 8],
+        filename: `reporte_reservas_${desde || "todo"}_${hasta || "todo"}.pdf`,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+      })
+      .from(bodyEl)
+      .save()
+      .then(() => restore(saved, filters))
+      .catch(err => {
+        restore(saved, filters);
+        console.error("Error al exportar PDF:", err);
+        alert("Error al generar PDF. Intenta con CSV.");
+      });
+  }
+
+  function restore(saved, filters){
+    saved.forEach(r => {
+      r.canvas.style.display = "";
+      if (r.img.parentNode) r.img.parentNode.removeChild(r.img);
+    });
+    if (filters) filters.style.display = "";
   }
 
   document.addEventListener("DOMContentLoaded", () => {
